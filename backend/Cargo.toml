@@ -1,0 +1,18 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.0"  # For web server functionality
+actix-multipart = "0.4"  # For handling multipart form data
+axum = "0.6"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+tower = "0.4"
+hyper = "0.14"
+multer = "2.0"
+env_logger = "0.9"
+sanitize-filename="0.3"
+futures-util = "0.3"
+actix-cors = "0.6"
