@@ -1,0 +1,24 @@
+use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post};
+use actix_jwt_auth_middleware as jwt;
+use sanitize_filename::sanitize;
+
+#[derive(Serialize, Deserialize, Clone, FromRequest)]
+struct UserClaims {
+    id: u32,
+    role: Role,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+enum Role {
+    Admin,
+    RegularUser,
+}
+
+#[post("/api/signup")]
+async fn signup(claims: UserClaims) -> impl Responder {
+    format!(
+        "Hello user with id: {}, i see you are a {:?}!",
+            user_claims.id, user_claims.role
+    ) //testing the format with the jwt unpack 
+    Ok::<HttpResponse, actix_web::Error>(HttpResponse::Ok().into())
+}
