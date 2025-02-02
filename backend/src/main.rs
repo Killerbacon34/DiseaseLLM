@@ -6,7 +6,7 @@ use actix_web::{App, HttpServer};
 use actix_web::middleware::Logger;
 use actix_cors::Cors;
 mod upload;
-
+mod signup;
 struct user {
     name: String,
     email: String,
@@ -34,6 +34,7 @@ async fn main() -> io::Result<()> {
             // register HTTP requests handlers
             .service(upload::upload_file) // Register the upload route
             .use_jwt(auth, web::scope("").service(upload::upload_file))
+            .service(signup::signup) // Register the signup route
 
     })
     .bind("127.0.0.1:5353")?
