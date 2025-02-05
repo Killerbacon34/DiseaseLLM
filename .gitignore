@@ -1,3 +1,6 @@
 frontend/src/node_modules/
 backend/target/
 frontend/src/.next/
+frontend/src/package-lock.json
+frontend/src/package.json
+frontend/src/package-lock.json

@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError};
+use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post};
 use actix_multipart::Multipart;
 use sanitize_filename::sanitize;
 use std::fs::File;
@@ -6,7 +6,7 @@ use std::fs;
 use futures_util::stream::StreamExt;
 use std::io::Write;
 #[post("/api/upload")]
-async fn upload_file(mut payload: Multipart) -> impl Responder {
+pub async fn upload (mut payload: Multipart) -> impl Responder {
     let dir = "./uploads/".to_owned();
     fs::create_dir_all(&dir).unwrap();
     while let Some(field) = payload.next().await {
