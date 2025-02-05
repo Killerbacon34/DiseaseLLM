@@ -10,7 +10,7 @@ const queryClient = new QueryClient();
 function uploadPage() {
     const router = useRouter();
     const { mutate } = useMutation(
-    (formData) => axios.post('http://localhost:5353/api/upload', formData),
+    (formData) => axios.post('http://127.0.0.1:5353/api/upload', formData),
     {
       headers: {"Content-Type": "multipart/form-data"},
       onSuccess: () => { // If the upload is successful:
