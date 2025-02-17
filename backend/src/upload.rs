@@ -12,10 +12,9 @@ pub async fn upload (mut payload: Multipart) -> impl Responder {
     while let Some(field) = payload.next().await {
         let mut field = field.map_err(|_| ErrorInternalServerError("Error reading field"))?;
         let filename = field
-            .content_disposition() 
-            .get_filename()
-            .map(|name| sanitize(name))
-            .unwrap_or_else(|| "default_filename".to_string()); 
+            .content_disposition()
+            .and_then(|cd| cd.get_filename().map(|name| sanitize(name)))
+            .unwrap_or_else(|| "default_filename".to_string());
         let filepath = format!("{}/{}", dir, filename);
         let mut f = web::block(|| File::create(filepath))
             .await
