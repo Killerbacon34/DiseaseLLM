@@ -33,3 +33,9 @@ nav {
   nav .space-x-4 > * {
     margin-left: 1rem;
   }
+
+  td {
+    border: 1;
+    border-Style: 'solid';
+    border-Color: 'black';
+  }

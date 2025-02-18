@@ -1,7 +1,4 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Link } from 'react-router-dom'
-import NavBar from "./Navbar";
 
 export default function Home() {
   return (
