@@ -1,5 +1,11 @@
+use actix_web::error::ErrorInternalServerError;
 use actix_web::{HttpResponse, Responder, post, web};
+use base64::{self, Engine as _};
 use serde::{Serialize, Deserialize};
+use rand::RngCore;
+use actix_web::web::Data;
+use actix_web::web::Json;
+use sqlx::PgPool;
 //use jsonwebtoken::{encode, Header, EncodingKey};
 //use std::time::{SystemTime, UNIX_EPOCH};
 //use std::env;
@@ -33,17 +39,10 @@ pub struct SignupData {
 }
 
 #[post("/api/login")]
-pub async fn login(data: json) -> impl Responder {
+pub async fn login(_pool: web::Data<PgPool>, data: web::Json<SignupData>) -> impl Responder {
     
 
     // Add the new user to the database (uncomment and implement this part)
-    // let pool = web::Data::<Pool>::clone(&pool);
-    // sqlx::query!("INSERT INTO users (id, role, pass, origdevid)
-    //     VALUES ($1, $2, $3, $4)", data.id,
-    //     data.role, data.pass, data.origdevid)
-    //     .execute(&pool)
-    //     .await
-    //     .map_err(|e| ErrorInternalServerError(e))?;
     if data.username == "admin" && data.pass == "admin" {
         let token = gentoken();
         println!("Token: {}", token);
@@ -51,16 +50,13 @@ pub async fn login(data: json) -> impl Responder {
     } else {
         return HttpResponse::Unauthorized().json("Invalid username or password");
     }
-
-
-
-    HttpResponse::Ok()
 }
 
 fn gentoken() -> String {
-    let mut rng = rand::thread_rng();
-    let rando = Os.Rng.gen::<[u8; 32]>().to_vec();
-    let token = base64::encode(rando);
+// Generate a random 32-byte token
+    let mut rando = [0u8; 32];
+    rand::rng().fill_bytes(&mut rando);
+    let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
     println!("Token: {}", token);
     return token;
 }

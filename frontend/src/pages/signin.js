@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
+import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
-const Signin = () => {
+const login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -42,16 +44,18 @@ const Signin = () => {
                 },
             });
             const token = response.data;
-            localStorage.setItem('token', token);
-            alert('Signup successful!');
+            localStorage.setItem('Auth', token);
+            alert('Login successful!');
+            redirect('/upload');
+            
         } catch (err) {
-            setError('Signup failed. Please try again.');
+            setError('Invalid username or password');
         }
     };
 
     return (
         <div>
-            <h2>Signup</h2>
+            <h2>Login</h2>
             <form onSubmit={handleSignup}>
                 <div>
                     <label>Username:</label>
@@ -72,7 +76,7 @@ const Signin = () => {
                     />
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">Signup</button>
+                <button type="submit">login</button>
             </form>
             
         </div>
@@ -81,4 +85,4 @@ const Signin = () => {
 };
 
 
-export default Signin;
+export default login;
