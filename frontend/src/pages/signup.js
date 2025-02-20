@@ -34,9 +34,9 @@ const Signup = () => {
         try {
             const response = await axios.post('http://127.0.0.1:5353/api/signup', {
                 username: username,
-                role: 'RegularUser', 
+                role: 0, 
                 pass: password,
-                origdevid: [deviceId],
+                devid: deviceId,
             }, {
                 headers: {
                     'Content-Type': 'application/json',

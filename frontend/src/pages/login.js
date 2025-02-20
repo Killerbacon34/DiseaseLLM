@@ -31,23 +31,22 @@ const login = () => {
         }
     }, []);
 
-    const handleSignup = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:5353/api/signin', {
+            const response = await axios.post('http://127.0.0.1:5353/api/login', {
                 username: username,
                 pass: password,
-                origdevid: [deviceId],
+                devid: deviceId,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
             const token = response.data;
-            localStorage.setItem('Auth', token);
+            sessionStorage.setItem('Auth', token);
             alert('Login successful!');
             redirect('/upload');
-            
         } catch (err) {
             setError('Invalid username or password');
         }
@@ -56,7 +55,7 @@ const login = () => {
     return (
         <div>
             <h2>Login</h2>
-            <form onSubmit={handleSignup}>
+            <form onSubmit={handleLogin}>
                 <div>
                     <label>Username:</label>
                     <input
@@ -76,7 +75,7 @@ const login = () => {
                     />
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">login</button>
+                <button type="submit">LOGIN</button>
             </form>
             
         </div>
