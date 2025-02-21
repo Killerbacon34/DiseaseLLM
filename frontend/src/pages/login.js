@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
+import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
-const Signup = () => {
+const login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -29,12 +31,11 @@ const Signup = () => {
         }
     }, []);
 
-    const handleSignup = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:5353/api/signup', {
+            const response = await axios.post('http://127.0.0.1:5353/api/login', {
                 username: username,
-                role: 0, 
                 pass: password,
                 devid: deviceId,
             }, {
@@ -43,17 +44,18 @@ const Signup = () => {
                 },
             });
             const token = response.data;
-            localStorage.setItem('token', token);
-            alert('Signup successful!');
+            sessionStorage.setItem('Auth', token);
+            alert('Login successful!');
+            redirect('/upload');
         } catch (err) {
-            setError('Signup failed. Please try again.');
+            setError('Invalid username or password');
         }
     };
 
     return (
         <div>
-            <h2>Signup</h2>
-            <form onSubmit={handleSignup}>
+            <h2>Login</h2>
+            <form onSubmit={handleLogin}>
                 <div>
                     <label>Username:</label>
                     <input
@@ -73,7 +75,7 @@ const Signup = () => {
                     />
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">Signup</button>
+                <button type="submit">LOGIN</button>
             </form>
             
         </div>
@@ -82,4 +84,4 @@ const Signup = () => {
 };
 
 
-export default Signup;
+export default login;
