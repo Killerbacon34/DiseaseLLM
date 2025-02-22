@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 
 let id = 0;
 function createData(patientName, diagnosis, treatment, drug) {

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
-import { useRouter } from 'next/navigation';
-import { redirect } from 'next/navigation';
 
-const login = () => {
+const Signup = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -31,11 +29,12 @@ const login = () => {
         }
     }, []);
 
-    const handleLogin = async (e) => {
+    const handleSignup = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:5353/api/login', {
+            const response = await axios.post('http://127.0.0.1:5353/api/signup', {
                 username: username,
+                role: 0, 
                 pass: password,
                 devid: deviceId,
             }, {
@@ -44,18 +43,17 @@ const login = () => {
                 },
             });
             const token = response.data;
-            sessionStorage.setItem('Auth', token);
-            alert('Login successful!');
-            redirect('/upload');
+            localStorage.setItem('token', token);
+            alert('Signup successful!');
         } catch (err) {
-            setError('Invalid username or password');
+            setError('Signup failed. Please try again.');
         }
     };
 
     return (
         <div>
-            <h2>Login</h2>
-            <form onSubmit={handleLogin}>
+            <h2>Signup</h2>
+            <form onSubmit={handleSignup}>
                 <div>
                     <label>Username:</label>
                     <input
@@ -75,7 +73,7 @@ const login = () => {
                     />
                 </div>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">LOGIN</button>
+                <button type="submit">Signup</button>
             </form>
             
         </div>
@@ -84,4 +82,4 @@ const login = () => {
 };
 
 
-export default login;
+export default Signup;

@@ -1,0 +1,27 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.0"  # For web server functionality
+actix-multipart = "0.7.2"  # For handling multipart form data
+axum = "0.8.1"
+tokio = "1"
+serde = "=1.0.217"
+tower = "0.5.2"
+hyper = "1.6.0"
+multer = "3.1.0"
+env_logger = "0.11.6"
+sanitize-filename="0.6.0"
+futures-util = "0.3"
+actix-cors = "0.7.0"
+actix-jwt-auth-middleware = "0.5.0"
+chrono = "=0.4.39"
+form_urlencoded = "=1.2.1"
+derive_builder = "0.20.2"
+crypto = "0.5.1"   
+hex = "0.4"        
+rand = "0.9.0"      
+sqlx = { version = "0.8.3", features = ["runtime-tokio-rustls", "postgres"] }
+base64 = "0.22.1"
