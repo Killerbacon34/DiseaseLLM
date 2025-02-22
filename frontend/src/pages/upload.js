@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useMutation, QueryClient } from 'react-query';
