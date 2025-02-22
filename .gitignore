@@ -1,0 +1,4 @@
+backend/target/*
+frontend/node_modules/*
+frontend/src/.next/*
+frontend/src/node_modules/*
