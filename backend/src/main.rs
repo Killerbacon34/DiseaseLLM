@@ -3,6 +3,7 @@ use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_cors::Cors;
 use sqlx::postgres:: { PgPoolOptions,  PgPool };
 use std::env; //FOR KEY STORAGE
+use dotenv::dotenv;
 mod upload;
 mod signup;
 mod login;
@@ -10,6 +11,7 @@ mod login;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await?;
@@ -38,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 login::login
             )
     })
-    .bind("127.0.0.1:4545")?
+    .bind("0.0.0.0:4545")?
     .run()
     .await?;
     Ok(())

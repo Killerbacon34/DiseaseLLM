@@ -8,7 +8,7 @@ actix-web = "4.0"  # For web server functionality
 actix-multipart = "0.7.2"  # For handling multipart form data
 axum = "0.8.1"
 tokio = "1"
-serde = "=1.0.217"
+serde = "1.0.218"
 tower = "0.5.2"
 hyper = "1.6.0"
 multer = "3.1.0"
@@ -25,3 +25,4 @@ hex = "0.4"
 rand = "0.9.0"      
 sqlx = { version = "0.8.3", features = ["runtime-tokio-rustls", "postgres"] }
 base64 = "0.22.1"
+dotenv = "0.15"
