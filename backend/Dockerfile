@@ -24,4 +24,4 @@ ENV ASPNETCORE_URLS=http://+:4545/
 
 ENV PORT 4545
 # Set the command to run the application
-CMD ["/app/backend"]
+CMD ["/app/backend", "--port", "4545"]
