@@ -20,5 +20,8 @@ COPY --from=builder /app/target/release/backend /app/backend
 # Expose the port that your application will run on
 EXPOSE 5353 
 
+ENV ASPNETCORE_URLS=http://+:5353/
+
+ENV PORT 5353
 # Set the command to run the application
 CMD ["/app/backend"]

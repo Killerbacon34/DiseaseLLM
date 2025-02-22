@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 login::login
             )
     })
-    .bind("127.0.0.1:5353")?
+    .bind("127.0.0.1:4545")?
     .run()
     .await?;
     Ok(())
