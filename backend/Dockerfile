@@ -18,10 +18,10 @@ RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /v
 COPY --from=builder /app/target/release/backend /app/backend
 
 # Expose the port that your application will run on
-EXPOSE 5353 
+EXPOSE 4545 
 
-ENV ASPNETCORE_URLS=http://+:5353/
+ENV ASPNETCORE_URLS=http://+:4545/
 
-ENV PORT 5353
+ENV PORT 4545
 # Set the command to run the application
 CMD ["/app/backend"]
