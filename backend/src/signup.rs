@@ -2,23 +2,7 @@ use actix_web::{HttpResponse, Responder, post, web, error::ErrorInternalServerEr
 use crypto::common::typenum::Integer;
 use serde::{Serialize, Deserialize};
 use sqlx::PgPool;
-//use jsonwebtoken::{encode, Header, EncodingKey};
-//use std::time::{SystemTime, UNIX_EPOCH};
-//use std::env;
-/*fn create_jwt(user: &UserClaims) -> Result<String, jsonwebtoken::errors::Error> {
-    let secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set"); // SECRET KEY SET USING ENVIRONMENT VARIABLE, CHANGE THIS on CLOUD DEPLOYMENT    
-    let expiration = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs() as usize + 3600; // Token valid for 1 hour
 
-    let claims = UserClaims {
-        exp: expiration,
-        ..user.clone()
-    };
-
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref()))
-}*/
 pub struct User {
     username: String,
     password: String,

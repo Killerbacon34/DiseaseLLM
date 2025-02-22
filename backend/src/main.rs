@@ -10,6 +10,8 @@ mod login;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
     let pool = PgPoolOptions::new().max_connections(10).connect("postgresql://user:cybears@localhost/diseasellm").await?;
 
     println!("✅ Successfully connected to the database!");
