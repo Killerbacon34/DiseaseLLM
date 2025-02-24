@@ -49,6 +49,7 @@ const login = () => {
             redirect('/upload');
         } catch (err) {
             setError('Invalid username or password');
+            console.log(err);
         }
     };
 

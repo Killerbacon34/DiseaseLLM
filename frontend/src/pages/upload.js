@@ -35,7 +35,6 @@ function uploadPage() {
         alert('Please select a file to upload.');
         return;
       }
-
       const file = fileInput.files[0];
       const formData = new FormData();
       formData.append('file', file);

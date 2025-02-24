@@ -45,6 +45,7 @@ const Signup = () => {
             const token = response.data;
             localStorage.setItem('token', token);
             alert('Signup successful!');
+            pages.redirect('/login');
         } catch (err) {
             setError('Signup failed. Please try again.');
         }
