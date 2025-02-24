@@ -36,7 +36,7 @@ const Signup = () => {
                 username: username,
                 role: 0, 
                 pass: password,
-                devid: deviceId,
+                origdevid: deviceId,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
