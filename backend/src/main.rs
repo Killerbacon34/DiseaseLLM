@@ -18,9 +18,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_name = env::var("DB_NAME").expect("DB_NAME must be set");
     let username = env::var("DB_USER").expect("DB_USER must be set");
     let password = env::var("DB_PASSWORD").expect("DB_PASSWORD must be set");
-    let database_url = format!(
-        "{protocol}:///?host={host}&port={port}&dbname={db_name}&user={username}&password={password}"
-    );
+    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| format!("{}://{}:{}@{}:{}/{}", protocol, username, password, host, port, db_name));
     println!("Connecting to {}", database_url);
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
         .expect("Failed to create pool");

@@ -8,18 +8,28 @@ use actix_web::web::Json;
 use sqlx::PgPool;
 
 #[derive(Serialize, Deserialize)]
-pub struct LoginData {
+pub struct  approvalData {
     username: String,
-    pass: String,
-    devid: String,
+    approval: bool 
+}
+#[post("/api/verify")]
+pub async fn verify(pool: web::Data<PgPool>, data: web::Json<approvalData>) -> Result<HttpResponse, actix_web::Error> {
+    _ = sqlx::query(
+    "SELECT * FROM users WHERE username = $1 AND approval = $2" 
+    )
+    .bind(&data.username)  // No need for `.clone()`
+    .bind(&data.approval)
+    .fetch_one(pool.get_ref())
+    .await
+    .map_err(|e| ErrorInternalServerError(e));
 }
 
-#[post("/api/login")]
-pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> Result<HttpResponse, actix_web::Error> {
+#[post("/api/approval")]
+pub async fn signoff(pool: web::Data<PgPool>, data: web::Json<>) -> Result<HttpResponse, actix_web::Error> {
     _ = sqlx::query(
     "SELECT * FROM users WHERE username = $1 AND password = $2"
     )
-    .bind(&data.username)  
+    .bind(&data.username)  // No need for `.clone()`
     .bind(&data.pass)
     .fetch_one(pool.get_ref())
     .await
@@ -29,7 +39,7 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> Resul
 }
 
 async fn gentoken(pool: web::Data<PgPool>, data: &String) -> String {
-// TODO: REMEMBER TO ADD DEVID TO THE TOKEN
+// Generate a random 32-byte token
     let mut rando = [0u8; 32];
     rand::rng().fill_bytes(&mut rando);
     let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
