@@ -1,7 +1,7 @@
 //use std::{env, io};
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_cors::Cors;
-use sqlx::postgres:: { PgPoolOptions,  PgPool };
+use sqlx::{database, postgres:: { PgPool, PgPoolOptions }};
 use std::env; //FOR KEY STORAGE
 use dotenv::dotenv;
 mod upload;
@@ -12,7 +12,8 @@ mod login;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    //let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = "postgres://?host=theta-totem-449419-k8:us-central1:dllm&port=5432&dbname=diseasellm&user=admin&password=cybears";
     println!("Connecting to {}", &database_url);
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
         .expect("Failed to create pool");
