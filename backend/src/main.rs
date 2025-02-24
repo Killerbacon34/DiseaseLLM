@@ -12,13 +12,7 @@ mod login;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let protocol = env::var("DB_PROTOCOL").unwrap_or_else(|_| "postgres".to_string());
-    let host = env::var("DB_HOST").expect("DB_HOST must be set");
-    let port = env::var("DB_PORT").unwrap_or_else(|_| "5432".to_string());
-    let db_name = env::var("DB_NAME").expect("DB_NAME must be set");
-    let username = env::var("DB_USER").expect("DB_USER must be set");
-    let password = env::var("DB_PASSWORD").expect("DB_PASSWORD must be set");
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| format!("{}://{}:{}@{}:{}/{}", protocol, username, password, host, port, db_name));
+    let database_url = env::var("DATABASE_URL");
     println!("Connecting to {}", database_url);
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
         .expect("Failed to create pool");

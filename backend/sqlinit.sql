@@ -10,11 +10,13 @@ CREATE TABLE users (
     Username TEXT NOT NULL UNIQUE,
     Password TEXT NOT NULL,
     DevID TEXT[], -- Array to store multiple strings
-    Role INT NOT NULL 
+    Role INT NOT NULL,
+    Approval BOOLEAN NOT NULL
 );
 
 CREATE TABLE TOKENS (
     ID SERIAL PRIMARY KEY,
     Token TEXT NOT NULL,
     Username INT NOT NULL
+    TimeCreated TIMESTAMP NOT NULL
 );

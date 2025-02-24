@@ -1,3 +1,4 @@
+use chrono::Utc;
 use actix_web::error::ErrorInternalServerError;
 use actix_web::{HttpResponse, Responder, post, web};
 use base64::{self, Engine as _};
@@ -33,10 +34,12 @@ async fn gentoken(pool: web::Data<PgPool>, data: &String) -> String {
     let mut rando = [0u8; 32];
     rand::rng().fill_bytes(&mut rando);
     let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
+    let timeCreated = Utc::now();
     println!("Token: {}", token);
-    _ = sqlx::query("INSERT INTO tokens (username, token) VALUES ($1, $2)")
+    _ = sqlx::query("INSERT INTO tokens (username, token, timecreated) VALUES ($1, $2, $3)")
     .bind(&data)
     .bind(&token)
+    .bind(&timeCreated.to_rfc3339())
     .execute(pool.get_ref())
     .await
     .map_err(|e| ErrorInternalServerError(e));
