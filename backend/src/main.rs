@@ -12,8 +12,8 @@ mod login;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let database_url = env::var("DATABASE_URL");
-    println!("Connecting to {}", database_url);
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    println!("Connecting to {}", &database_url);
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
         .expect("Failed to create pool");
     println!("✅ Successfully connected to the database!");
