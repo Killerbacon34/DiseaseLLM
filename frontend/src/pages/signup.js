@@ -48,6 +48,7 @@ const Signup = () => {
             pages.redirect('/login');
         } catch (err) {
             setError('Signup failed. Please try again.');
+            console.log(err);
         }
     };
 
