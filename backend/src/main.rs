@@ -12,12 +12,12 @@ mod queryLLM;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    //let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    //let database_url = "postgres:///?host=/cloudsql/theta-totem-449419-k8:us-central1:dllm&port=5432&dbname=diseasellm&user=admin&password=cybears";
-    //println!("Connecting to {}", &database_url);
-   // let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
-    //    .expect("Failed to create pool");
-    //println!("✅ Successfully connected to the database!");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = "postgres:///?host=/cloudsql/theta-totem-449419-k8:us-central1:dllm&port=5432&dbname=diseasellm&user=admin&password=cybears";
+    println!("Connecting to {}", &database_url);
+    let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
+    .expect("Failed to create pool");
+    println!("✅ Successfully connected to the database!");
     std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init(); 
     HttpServer::new(move || {

@@ -19,7 +19,7 @@ const Signup = () => {
                     const murmur = Fingerprint2.x64hash128(values.join(''), 31);
                     setDeviceId(murmur);
                     console.log('Device ID:', murmur);
-                });
+                })  ;
             });
         } else {
             setTimeout(() => {
@@ -49,7 +49,7 @@ const Signup = () => {
             localStorage.setItem('token', token);
             setError('');
             alert('Signup successful!');
-            router.push('/login');
+            router.push('/release');
         } catch (err) {
             setError('Signup failed. Please try again.');
             console.log(err);
