@@ -7,7 +7,7 @@ use dotenv::dotenv;
 mod upload;
 mod signup;
 mod login;
-mod queryLLM;
+//mod queryLLM;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -40,9 +40,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .service(   
                 login::login
             )
-            .service(
+            /* .service(
                 queryLLM::query_clinical_bert
-            )
+            )*/
     })
     .bind("0.0.0.0:4545")?
     .run()

@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder, post, web, get};
+/*use actix_web::{HttpResponse, Responder, post, web, get};
 use reqwest::Client;
 use serde_json::{json, Value};
 
@@ -26,3 +26,4 @@ pub async fn query_clinical_bert() -> Result<HttpResponse, actix_web::Error> {
     
 }
 
+*/

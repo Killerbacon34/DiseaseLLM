@@ -13,14 +13,6 @@ RUN apt-get update && apt-get install -y musl-tools musl-dev && apt-get install 
 
 ENV OPENSSL_DIR=/usr/include/openssl
 
-
-
-
-
-
-
-
-
 # Install MUSL target for Rust
 RUN rustup target add x86_64-unknown-linux-musl
 
