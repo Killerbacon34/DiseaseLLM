@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
+import { useRouter } from 'next/navigation';
 
 const Signup = () => {
     const router = useRouter();
