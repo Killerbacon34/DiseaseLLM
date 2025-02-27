@@ -19,11 +19,12 @@ pub struct LoginData {
 #[post("/api/login")]
 pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl Responder {
     // Query the database to check if the user exists
-    let user_result = sqlx::query!(
+    let user_result = sqlx::query(
         "SELECT * FROM users WHERE username = $1 AND password = $2",
-        data.username,
-        data.pass
+       
     )
+    .bind(&data.username)
+    .bind(&data.pass)
     .fetch_one(pool.get_ref())
     .await;
 
@@ -32,12 +33,12 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl 
             let token = gentoken().await;
             let time_created = Utc::now();
             println!("Token: {:?}", token);
-            _ = sqlx::query!(
+            _ = sqlx::query(
                 "INSERT INTO tokens (username, token, timecreated) VALUES ($1, $2, $3)",
-                data.username,
-                token,
-                time_created.to_rfc3339()
             )
+            .bind(&data.username)
+            .bind(&token)
+            .bind(time_created.to_rfc3339())
             .execute(pool.get_ref())
             .await
             .map_err(|e| ErrorInternalServerError(e));
