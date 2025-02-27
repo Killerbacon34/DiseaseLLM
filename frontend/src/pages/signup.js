@@ -3,6 +3,8 @@ import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
 
 const Signup = () => {
+    const router = useRouter();
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -44,8 +46,9 @@ const Signup = () => {
             });
             const token = response.data;
             localStorage.setItem('token', token);
+            setError('');
             alert('Signup successful!');
-            pages.redirect('/login');
+            router.push('/login');
         } catch (err) {
             setError('Signup failed. Please try again.');
             console.log(err);

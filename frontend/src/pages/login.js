@@ -9,6 +9,7 @@ const login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [deviceId, setDeviceId] = useState('');
+    const router = useRouter();
 
     useEffect(() => {
         if (window.requestIdleCallback) {
@@ -46,7 +47,8 @@ const login = () => {
             const token = response.data;
             sessionStorage.setItem('Auth', token);
             alert('Login successful!');
-            redirect('/upload');
+            setError('');
+            router.push('/upload');
         } catch (err) {
             setError('Invalid username or password');
             console.log(err);
