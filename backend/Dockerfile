@@ -5,8 +5,19 @@ FROM rust:latest as builder
 WORKDIR /app
 
 # Install required MUSL dependencies
-RUN apt-get update && apt-get install -y musl-tools musl-dev && apt-get -y install libssl-dev pkg-config
-RUN export OPENSSL_DIR=/usr/include/openssl
+RUN apt-get update && apt-get install -y musl-tools musl-dev && apt-get install -y --no-install-recommends \
+        pkg-config \
+        libssl-dev \
+        # Add any other build dependencies you need
+        && rm -rf /var/lib/apt/lists/* 
+
+ENV OPENSSL_DIR=/usr/include/openssl
+
+
+
+
+
+
 
 
 
