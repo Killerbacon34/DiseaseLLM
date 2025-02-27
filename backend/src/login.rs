@@ -46,9 +46,11 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl 
             HttpResponse::Ok().json(token)
         }
         Err(Error::RowNotFound) => {
+            println!("Invalid username or password");
             HttpResponse::Unauthorized().body("Invalid username or password")
-        }
+       }
         Err(e) => {
+            println!("Internal server error: {}", e);
             HttpResponse::InternalServerError().body(format!("Internal server error: {}", e))
         }
     }
