@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Release() {
 
-    onsubmit = async (e) => {
+    const handleClick = async (e) => {
         e.preventDefault();
         /*try {
             const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/release', {
@@ -44,6 +44,6 @@ export default function Release() {
             the federal regulations governing the Confidentiality of Substance Use Disorder
             Patient Records and cannot be redisclosed without my written authorization.</p>
       </div>
-      <button type="submit">ACCEPT</button>
+      <button type="button" onClick={handleClick}>ACCEPT</button>
     </div>)
   }
