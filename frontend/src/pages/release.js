@@ -4,6 +4,7 @@ import Fingerprint2 from 'fingerprintjs2';
 import { useRouter } from 'next/navigation';
 
 export default function Release() {
+    const router  = useRouter();
 
     const handleClick = async (e) => {
         e.preventDefault();
@@ -16,7 +17,7 @@ export default function Release() {
                     'Content-Type': 'application/json',
                 },
             });*/
-            Router.push('/upload');
+            router.push('/upload');
         /*}
         catch (err) {
             console.log(err);

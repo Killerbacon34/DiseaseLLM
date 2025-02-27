@@ -5,7 +5,10 @@ FROM rust:latest as builder
 WORKDIR /app
 
 # Install required MUSL dependencies
-RUN apt-get update && apt-get install -y musl-tools musl-dev
+RUN apt-get update && apt-get install -y musl-tools musl-dev && apt-get -y install libssl-dev pkg-config
+RUN export OPENSSL_DIR=/usr/include/openssl
+
+
 
 # Install MUSL target for Rust
 RUN rustup target add x86_64-unknown-linux-musl
