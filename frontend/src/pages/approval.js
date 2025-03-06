@@ -25,6 +25,10 @@ let rows = [
   export default class Approval extends React.Component {
   render() {
     return(
+      <>
+      <div style ={{fontWeight: 'bold', justifyContent: 'center', alignItems: 'center'}}>
+        <h1>Approval</h1> 
+      </div>
       <table style={{width: '100%', border: 1, borderStyle: 'solid', borderColor: 'black'}}>
         <thead>
           <tr onClick={this.handleRowClick}>
@@ -45,6 +49,7 @@ let rows = [
          ))}
         </tbody>
       </table>
+      </>
     )
   }
 
