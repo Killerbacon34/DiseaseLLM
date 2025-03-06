@@ -23,7 +23,7 @@
 //   );
 // };
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -33,7 +33,11 @@ import { BsJustify, BsChevronRight } from "react-icons/bs";
 
 function MyNavbar() {
   const [show, setShow] = useState(false);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(false); // Simulated user state
+
+  useEffect(() => {
+    setUser(sessionStorage.getItem("auth") === "true");
+  }, []);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
