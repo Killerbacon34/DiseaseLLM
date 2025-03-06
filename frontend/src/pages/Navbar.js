@@ -33,7 +33,7 @@ import { BsJustify, BsChevronRight } from "react-icons/bs";
 
 function MyNavbar() {
   const [show, setShow] = useState(false);
-  const [user, setUser] = useState(false); // Simulated user state
+  const [user, setUser] = useState(false);
 
   useEffect(() => {
     setUser(sessionStorage.getItem("auth") === "true");
