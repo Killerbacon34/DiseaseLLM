@@ -12,7 +12,7 @@ mod login;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let database_url = "postgres:///?host=/cloudsql/theta-totem-449419-k8:us-central1:dllm&port=5432&dbname=diseasellm&user=postgres&password=cybears";
+    let database_url = "postgres:///?0.0.0.0&port=5432&dbname=diseasellm&user=postgres&password=cybears";
     println!("Connecting to {}", &database_url);
     let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
     .expect("Failed to create pool");
