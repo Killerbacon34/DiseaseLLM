@@ -71,7 +71,7 @@ async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
         .fetch_one(pool.get_ref())
         .await
         .is_ok();
-    match res {
+    /*match res {
         Ok(time_created) => {
             let time_created: String = time_created.get(0);
             let time_created = Utc::from_utc_datetime(&time_created);
@@ -84,11 +84,12 @@ async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
         }
         Err(_) => {
             return false; 
-    }
+    }*/
+    return true;
+}
 
-    sqlx::query("DELETE FROM tokens WHERE token = $1")
+    /*sqlx::query("DELETE FROM tokens WHERE token = $1")
         .bind(token)
         .execute(pool.get_ref())
         .await
-        .is_ok()
-}
+        .is_ok()*/

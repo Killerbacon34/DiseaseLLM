@@ -5,7 +5,6 @@ use std::fs::File;
 use std::fs;
 use futures_util::stream::StreamExt;
 use std::io::Write;
-use pdf::
 #[post("/api/upload")]
 pub async fn upload (mut payload: Multipart) -> impl Responder {
     let dir = "./uploads/".to_owned();
