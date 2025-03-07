@@ -11,7 +11,9 @@ CREATE TABLE users (
     Password TEXT NOT NULL,
     DevID TEXT[], -- Array to store multiple strings
     Role INT NOT NULL,
-    Approval BOOLEAN NOT NULL
+    Approval BOOL,
+    ApprovalSigned TIMESTAMP,
+    TimeCreated TIMESTAMP NOT NULL,
 );
 
 CREATE TABLE TOKENS (

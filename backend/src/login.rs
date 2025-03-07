@@ -2,6 +2,7 @@ use chrono::Utc;
 use actix_web::error::ErrorInternalServerError;
 use actix_web::{HttpResponse, Responder, post, web};
 use base64::{self, Engine as _};
+use crypto::common::typenum::True;
 use serde::{Serialize, Deserialize};
 use rand::RngCore;
 use actix_web::web::Data;
@@ -62,4 +63,32 @@ async fn gentoken() -> String {
     rand::rng().fill_bytes(&mut rando);
     let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
     return token;
+}
+
+async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
+    let res = sqlx::query("SELECT timecreated FROM tokens WHERE token = $1")
+        .bind(token)
+        .fetch_one(pool.get_ref())
+        .await
+        .is_ok();
+    match res {
+        Ok(time_created) => {
+            let time_created: String = time_created.get(0);
+            let time_created = Utc::from_utc_datetime(&time_created);
+            let time_now = Utc::now();
+            if time_now.signed_duration_since(time_created).num_minutes() > 90 {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        Err(_) => {
+            return false; 
+    }
+
+    sqlx::query("DELETE FROM tokens WHERE token = $1")
+        .bind(token)
+        .execute(pool.get_ref())
+        .await
+        .is_ok()
 }
