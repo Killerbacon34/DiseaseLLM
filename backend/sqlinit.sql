@@ -13,12 +13,12 @@ CREATE TABLE users (
     Role INT NOT NULL,
     Approval BOOL,
     ApprovalSigned TIMESTAMP,
-    TimeCreated TIMESTAMP NOT NULL,
+    TimeCreated TIMESTAMP NOT NULL
 );
 
 CREATE TABLE TOKENS (
     ID SERIAL PRIMARY KEY,
     Token TEXT NOT NULL,
-    Username INT NOT NULL
+    Username INT NOT NULL,
     TimeCreated TIMESTAMP NOT NULL
-);
+)
