@@ -25,7 +25,7 @@ pub async fn verify(pool: web::Data<PgPool>, data: web::Json<approvalData>) -> R
 }
 
 #[post("/api/approval")]
-pub async fn signoff(pool: web::Data<PgPool>, data: web::Json<>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn approval(pool: web::Data<PgPool>, data: web::Json<>) -> Result<HttpResponse, actix_web::Error> {
     _ = sqlx::query(
     "SELECT * FROM users WHERE username = $1 AND password = $2"
     )

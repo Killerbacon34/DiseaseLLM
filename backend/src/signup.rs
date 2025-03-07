@@ -1,4 +1,5 @@
 use actix_web::{HttpResponse, Responder, post, web, error::ErrorInternalServerError};
+use chrono::Utc;
 use crypto::common::typenum::Integer;
 use serde::{Serialize, Deserialize};
 use sqlx::PgPool;
@@ -44,5 +45,27 @@ pub async fn signup(pool: web::Data<PgPool>, data: web::Json<SignupData>) -> imp
         newuser.username, newuser.role
     );
 
+    HttpResponse::Ok()
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct ReleaseData {
+    accepted: bool,
+    username: String,
+}
+#[post("/api/release")]
+pub async fn release(pool: web::Data<PgPool>, data: web::Json<ReleaseData>) -> impl Responder {
+    let time_signed = Utc::now();
+    _ = sqlx::query(
+    "UPDATE users (approval, ApprovalSigned) VALUES ($1, $2) WHERE username =
+    $3"
+    )
+    .bind(&data.accepted)
+    .bind(&time_signed.to_rfc3339())
+    .bind(&data.username)
+    .execute(pool.get_ref())
+    .await
+    .map_err(|e| ErrorInternalServerError(e));
     HttpResponse::Ok()
 }
