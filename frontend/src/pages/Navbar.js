@@ -29,7 +29,7 @@ import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import Offcanvas from 'react-bootstrap/Offcanvas';
-import { BsJustify, BsChevronRight } from "react-icons/bs";
+import { BsJustify, BsX } from "react-icons/bs";
 
 function MyNavbar() {
   const [show, setShow] = useState(false);
@@ -58,7 +58,7 @@ function MyNavbar() {
       <Offcanvas show={show} onHide={handleClose} placement="end">
         <Offcanvas.Header>
         <Button variant="link" onClick={handleClose} style={{ marginRight: "auto" }}>
-            <BsChevronRight size={24} />
+            <BsX size={24} />
           </Button>
           <Offcanvas.Title>Options</Offcanvas.Title>
         </Offcanvas.Header>
