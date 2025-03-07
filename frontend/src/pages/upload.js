@@ -9,7 +9,7 @@ const queryClient = new QueryClient();
 function uploadPage() {
     const router = useRouter();
     const { mutate } = useMutation(
-    (formData) => axios.post('http://127.0.0.1:5353/api/upload', formData),
+    (formData) => axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/upload', formData),
     {
       headers: {"Content-Type": "multipart/form-data"},
       onSuccess: () => { // If the upload is successful:
@@ -35,7 +35,6 @@ function uploadPage() {
         alert('Please select a file to upload.');
         return;
       }
-
       const file = fileInput.files[0];
       const formData = new FormData();
       formData.append('file', file);

@@ -1,4 +1,28 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Fingerprint2 from 'fingerprintjs2';
+import { useRouter } from 'next/navigation';
+
 export default function Release() {
+    const router  = useRouter();
+
+    const handleClick = async (e) => {
+        e.preventDefault();
+        /*try {
+            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/release', {
+                auth: sessionStorage.getItem('token'),
+                release: true,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });*/
+            router.push('/upload');
+        /*}
+        catch (err) {
+            console.log(err);
+        }*/
+    };
     return (<div>
       <h1>Medical Information Release Form</h1>
       <div>
@@ -21,6 +45,6 @@ export default function Release() {
             the federal regulations governing the Confidentiality of Substance Use Disorder
             Patient Records and cannot be redisclosed without my written authorization.</p>
       </div>
-      <button>ACCEPT</button>
+      <button type="button" onClick={handleClick}>ACCEPT</button>
     </div>)
   }

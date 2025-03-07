@@ -1,8 +1,4 @@
-frontend/src/node_modules/
-backend/target/
-frontend/src/.next/
-frontend/src/package-lock.json
-frontend/src/package.json
-frontend/src/package-lock.json
-frontend/src/package.json
-frontend/src/package-lock.json
+backend/target/*
+frontend/node_modules/*
+frontend/src/.next/*
+frontend/src/node_modules/*

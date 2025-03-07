@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Fingerprint2 from 'fingerprintjs2';
+import { useRouter } from 'next/navigation';
 
 const Signup = () => {
+    const router = useRouter();
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -16,7 +19,7 @@ const Signup = () => {
                     const murmur = Fingerprint2.x64hash128(values.join(''), 31);
                     setDeviceId(murmur);
                     console.log('Device ID:', murmur);
-                });
+                })  ;
             });
         } else {
             setTimeout(() => {
@@ -32,11 +35,11 @@ const Signup = () => {
     const handleSignup = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:5353/api/signup', {
+            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/signup', {
                 username: username,
                 role: 0, 
                 pass: password,
-                devid: deviceId,
+                origdevid: deviceId,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -44,9 +47,12 @@ const Signup = () => {
             });
             const token = response.data;
             localStorage.setItem('token', token);
+            setError('');
             alert('Signup successful!');
+            router.push('/release');
         } catch (err) {
             setError('Signup failed. Please try again.');
+            console.log(err);
         }
     };
 

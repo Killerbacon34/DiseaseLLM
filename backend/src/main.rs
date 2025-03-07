@@ -1,19 +1,21 @@
 //use std::{env, io};
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use actix_cors::Cors;
-use sqlx::postgres:: { PgPoolOptions,  PgPool };
+use sqlx::{database, postgres:: { PgPool, PgPoolOptions }};
 use std::env; //FOR KEY STORAGE
+use dotenv::dotenv;
 mod upload;
 mod signup;
 mod login;
-
+//mod queryLLM;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    let pool = PgPoolOptions::new().max_connections(10).connect("postgresql://user:cybears@localhost/diseasellm").await?;
-
+    dotenv().ok();
+    let database_url = "postgres:///?host=/cloudsql/theta-totem-449419-k8:us-central1:dllm&port=5432&dbname=diseasellm&user=postgres&password=cybears";
+    println!("Connecting to {}", &database_url);
+    let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
+    .expect("Failed to create pool");
     println!("✅ Successfully connected to the database!");
     std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init(); 
@@ -27,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .max_age(3600)
             )
             .app_data(web::Data::new(pool.clone()))
-            //.service(upload::upload)
+            .service(upload::upload)
             .service(
               signup::signup
             )
@@ -37,9 +39,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .service(   
                 login::login
             )
+            /* .service(
+                queryLLM::query_clinical_bert
+            )*/
     })
-    // .bind("127.0.0.1:5353")?
-    .bind("127.0.0.1:5353")?
+    .bind("0.0.0.0:4545")?
     .run()
     .await?;
     Ok(())

@@ -9,6 +9,7 @@ const login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [deviceId, setDeviceId] = useState('');
+    const router = useRouter();
 
     useEffect(() => {
         if (window.requestIdleCallback) {
@@ -34,7 +35,7 @@ const login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:5353/api/login', {
+            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/login', {
                 username: username,
                 pass: password,
                 devid: deviceId,
@@ -46,9 +47,11 @@ const login = () => {
             const token = response.data;
             sessionStorage.setItem('Auth', token);
             alert('Login successful!');
-            redirect('/upload');
+            setError('');
+            router.push('/upload');
         } catch (err) {
             setError('Invalid username or password');
+            console.log(err);
         }
     };
 
