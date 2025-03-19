@@ -1,6 +1,6 @@
 use chrono::Utc;
 use actix_web::error::ErrorInternalServerError;
-use actix_web::{HttpResponse, Responder, post, web};
+use actix_web::{HttpResponse, Responder, post, web, get};
 use base64::{self, Engine as _};
 use crypto::common::typenum::True;
 use serde::{Serialize, Deserialize};
@@ -64,7 +64,21 @@ async fn gentoken() -> String {
     let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
     return token;
 }
-
+#[get("/api/anontrack")]
+async fn anontrack(pool: Data<PgPool>) -> impl Responder {
+    let token = gentoken().await;
+    let time_created = Utc::now();
+    println!("Token: {:?}", token);
+    _ = sqlx::query(
+        "INSERT INTO tokens (token, timecreated) VALUES ($1, $2)",
+    )
+    .bind(&token)
+    .bind(time_created.to_rfc3339())
+    .execute(pool.get_ref())
+    .await
+    .map_err(|e| ErrorInternalServerError(e));
+    HttpResponse::Ok().json(token)
+}
 async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
     let res = sqlx::query("SELECT timecreated FROM tokens WHERE token = $1")
         .bind(token)
