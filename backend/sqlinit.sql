@@ -22,3 +22,14 @@ CREATE TABLE TOKENS (
     Username INT NOT NULL,
     TimeCreated TIMESTAMP NOT NULL
 )
+
+CREATE TABLE HISTORY (
+    ID SERIAL PRIMARY KEY,
+    Username TEXT NOT NULL,
+    Age INT NOT NULL,
+    Gender TEXT NOT NULL,
+    Symptoms: TEXT[] NOT NULL,
+    LabResults: TEXT[] NOT NULL,
+    Diagnosis: TEXT NOT NULL,
+    TimeCreated TIMESTAMP NOT NULL
+)
