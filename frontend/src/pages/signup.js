@@ -57,31 +57,34 @@ const Signup = () => {
     };
 
     return (
-        <div>
-            <h2>Signup</h2>
+        <div className="d-flex align-items-center justify-content-center vh-100">
+            <div>
+            <h2 className="text-center mb-3">Signup</h2>
             <form onSubmit={handleSignup}>
-                <div>
-                    <label>Username:</label>
+                <div className="mb-3">
+                    <label className="form-label">Username:</label>
                     <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        className="form-control"
                     />
                 </div>
-                <div>
-                    <label>Password:</label>
+                <div className="mb-3">
+                    <label className="form-label">Password:</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className="form-control"
                     />
                 </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">Signup</button>
+                {error && <p className="text-danger text-center" style={{ color: 'red' }}>{error}</p>}
+                <button type="submit" className="btn btn-primary w-100">Signup</button>
             </form>
-            
+            </div>
         </div>
     );
         
