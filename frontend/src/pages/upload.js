@@ -45,11 +45,13 @@ function uploadPage() {
   }, []);
 
   return (
-    <div>
-      <h1>Upload</h1>
-      <input type="file" id="fileInput" />
-      <button id="uploadButton">Upload</button>
+    <div className="d-flex align-items-center justify-content-center vh-100">
+      <div>
+      <h1 className="text-center mb-3">Upload</h1>
+      <input type="file" id="fileInput" className="form-control"/>
+      <button id="uploadButton" className="btn btn-primary w-100">Upload</button>
       <div className="preview"></div>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import MyNavbar from "./Navbar";
 import "./styles.css";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './bootstrap.min.css';
 
 const queryClient = new QueryClient();
 

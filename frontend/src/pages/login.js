@@ -54,37 +54,50 @@ const login = () => {
             console.log(err);
         }
     };
-
-    return (
+return (
+    <div className="d-flex align-items-center justify-content-center vh-100">
         <div>
-            <h2>Login</h2>
+            <h2 className="text-center mb-3">Login</h2>
+            <p className="text-center mt-3">
+                <small>or <span 
+                    className="text-primary cursor-pointer" 
+                    style={{ cursor: "pointer" }}
+                    onClick={() => router.push('/signup')}
+                >create an account</span></small>
+            </p>
             <form onSubmit={handleLogin}>
-                <div>
-                    <label>Username:</label>
+                <div className="mb-3">
+                    <label className="form-label">Username</label>
                     <input
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        className="form-control"
                     />
                 </div>
-                <div>
-                    <label>Password:</label>
+                <div className="mb-3">
+                    <label className="form-label">Password</label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        className="form-control"
                     />
                 </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                <button type="submit">LOGIN</button>
+                {error && <p className="text-danger text-center">{error}</p>}
+                <button
+                    type="submit"
+                    className="btn btn-primary w-100"
+                >
+                    LOGIN
+                </button>
             </form>
             
         </div>
-    );
-        
+    </div>
+);
 };
-
 
 export default login;

@@ -11,40 +11,29 @@ let rows = [
   //make call to database to get the data using: createData('Patient Name', 'Diagnosis', 'Treatment Plan', 'Drug Usage Plan'),
 ];
 
-// function withRouter(Component) {
-//   return function (props) {
-//     const navigate = useNavigate();
-//     return <Component {...props} navigate={navigate} />;
-//   };
-// }
-
-// class Approval extends React.Component {
-  // handleRowClick = () => {
-  //   this.props.navigate("/comment");
-  // };
   export default class Approval extends React.Component {
   render() {
     return(
       <>
       <div style ={{fontWeight: 'bold', justifyContent: 'center', alignItems: 'center'}}>
-        <h1>Approval</h1> 
+        <h1>Generated Diagnoses</h1> 
       </div>
-      <table style={{width: '100%', border: 1, borderStyle: 'solid', borderColor: 'black'}}>
+      <table class="table table-hover">
         <thead>
           <tr onClick={this.handleRowClick}>
-            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'black', height: 70}}>Patient Name</th>
-            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'black', height: 70}}>Diagnosis</th>
-            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'black', height: 70}}>Treatment Plan</th>
-            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'black', height: 70}}>Drug Usage Plan</th>
+            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'white', height: 70}}>Patient Name</th>
+            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'white', height: 70}}>Diagnosis</th>
+            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'white', height: 70}}>Treatment Plan</th>
+            <th style={{fontWeight: 'bold', border: 1, borderStyle: 'solid', borderColor: 'white', height: 70}}>Drug Usage Plan</th>
           </tr>
         </thead>
         <tbody>
             {rows.map(row => (
-            <tr key={row.id}>
-                <td style={{border: 1, borderStyle: 'solid', borderColor: 'black'}}>{row.patientName}</td>
-                <td style={{border: 1, borderStyle: 'solid', borderColor: 'black'}}>{row.diagnosis}</td>
-                <td style={{border: 1, borderStyle: 'solid', borderColor: 'black'}}>{row.treatment}</td>
-                <td style={{border: 1, borderStyle: 'solid', borderColor: 'black'}}>{row.drug}</td>
+            <tr key={row.id} class="table-active">
+                <td style={{border: 1, borderStyle: 'solid', borderColor: 'white'}}>{row.patientName}</td>
+                <td style={{border: 1, borderStyle: 'solid', borderColor: 'white'}}>{row.diagnosis}</td>
+                <td style={{border: 1, borderStyle: 'solid', borderColor: 'white'}}>{row.treatment}</td>
+                <td style={{border: 1, borderStyle: 'solid', borderColor: 'white'}}>{row.drug}</td>
             </tr>
          ))}
         </tbody>
