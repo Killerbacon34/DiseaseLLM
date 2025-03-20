@@ -9,6 +9,7 @@ use actix_web::web::Data;
 use actix_web::web::Json;
 use sqlx::PgPool;
 use sqlx::Error;
+use sqlx::Row;
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginData {
@@ -56,7 +57,47 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl 
         }
     }
 }
+#[derive(Serialize, Deserialize)]
+pub struct TokenData {
+    token: String,
+}
 
+#[post("/api/checktoken")]
+pub async fn checktoken(pool: web::Data<PgPool>, data: web::Json<TokenData>) -> impl Responder {
+    let token = &data.token;
+    let token_result = sqlx::query(
+        "SELECT * FROM tokens WHERE token = $1",
+    )
+    .bind(token)
+    .fetch_one(pool.get_ref())
+    .await;
+
+    match token_result {
+        Ok(record) => {
+            let time_str: String = match record.try_get("timecreated") {
+                Ok(value) => value,
+                Err(e) => {
+                    println!("Error retrieving timecreated: {}", e);
+                    return HttpResponse::InternalServerError().body("Error retrieving timecreated").into();
+                }
+            };
+            let time_created = chrono::DateTime::parse_from_rfc3339(&time_str).unwrap();
+            if time_created < Utc::now() - chrono::Duration::minutes(30) {
+                revoketoken(pool, token).await;
+                return HttpResponse::Unauthorized().body("Token expired");
+            }
+            HttpResponse::Ok().body("Token is valid")
+        }
+        Err(Error::RowNotFound) => {
+            println!("Invalid token");
+            HttpResponse::Unauthorized().body("Invalid token")
+        }
+        Err(e) => {
+            println!("Internal server error: {}", e);
+            HttpResponse::InternalServerError().body(format!("Internal server error: {}", e))
+        }
+    }
+}
 async fn gentoken() -> String {
 // TODO: REMEMBER TO ADD DEVID TO THE TOKEN
     let mut rando = [0u8; 32];
@@ -80,27 +121,14 @@ async fn anontrack(pool: Data<PgPool>) -> impl Responder {
     HttpResponse::Ok().json(token)
 }
 async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
-    let res = sqlx::query("SELECT timecreated FROM tokens WHERE token = $1")
+    let _ = sqlx::query("DELETE FROM tokens WHERE token = $1")
         .bind(token)
-        .fetch_one(pool.get_ref())
+        .execute(pool.get_ref())
         .await
-        .is_ok();
-    /*match res {
-        Ok(time_created) => {
-            let time_created: String = time_created.get(0);
-            let time_created = Utc::from_utc_datetime(&time_created);
-            let time_now = Utc::now();
-            if time_now.signed_duration_since(time_created).num_minutes() > 90 {
-                return false;
-            } else {
-                return true;
-            }
-        }
-        Err(_) => {
-            return false; 
-    }*/
-    return true;
+        .map_err(|e| ErrorInternalServerError(e));
+    return true;    
 }
+
 
     /*sqlx::query("DELETE FROM tokens WHERE token = $1")
         .bind(token)
