@@ -35,7 +35,7 @@ const login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/login', {
+            const response = await axios.post('http://localhost:4545/api/login', {
                 username: username,
                 pass: password,
                 devid: deviceId,

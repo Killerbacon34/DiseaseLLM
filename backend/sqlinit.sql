@@ -33,3 +33,11 @@ CREATE TABLE HISTORY (
     Diagnosis: TEXT NOT NULL,
     TimeCreated TIMESTAMP NOT NULL
 )
+
+CREATE TABLE USERINFO (
+    ID SERIAL PRIMARY KEY,
+    PhysicalInfo TEXT[],
+    Symptoms TEXT[],
+    BiometricInfo TEXT[],
+    MedicalHistory TEXT[]
+);

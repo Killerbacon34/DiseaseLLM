@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 queryLLM::query_clinical_bert
             )*/
     })
-    .bind("0.0.0.0:5432")?
+    .bind("0.0.0.0:4545")?
     .run()
     .await?;
     Ok(())

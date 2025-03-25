@@ -35,7 +35,7 @@ const Signup = () => {
     const handleSignup = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/signup', {
+            const response = await axios.post('http://localhost:4545/api/signup', {
                 username: username,
                 role: 0, 
                 pass: password,

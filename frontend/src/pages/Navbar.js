@@ -36,11 +36,15 @@ function MyNavbar() {
   const [user, setUser] = useState(false);
 
   useEffect(() => {
-    setUser(sessionStorage.getItem("auth") === "true");
-  }, []);
+    const token = sessionStorage.getItem('Auth');
+    if (token) {
+      // Simulate a user check based on the token
+      setUser({ username: 'User' }); // Replace with actual user fetching logic
+    }
+  }, []);  
 
-  const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
 
   return (
     <>
@@ -64,14 +68,9 @@ function MyNavbar() {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Nav>
-          {!user ? (
-                <>
-                  <Nav.Link href="/signup">Sign Up</Nav.Link>
-                  <Nav.Link href="/login">Login</Nav.Link>
-                </>
-              ) : (
-                <Nav.Link disabled>Welcome, {user.username}</Nav.Link>
-              )}
+              <Nav.Link href="/">Home</Nav.Link>
+              {!user && <Nav.Link href="/signup">Sign Up</Nav.Link>}
+              {!user && <Nav.Link href="/login">Login</Nav.Link>}
               <Nav.Link href="/upload">Document Upload</Nav.Link>
               <Nav.Link href="/manualupload">Manual Upload</Nav.Link>
               <Nav.Link href="/approval">View Diagnoses</Nav.Link>

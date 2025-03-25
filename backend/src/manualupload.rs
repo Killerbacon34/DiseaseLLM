@@ -5,30 +5,35 @@ use std::fs::File;
 use std::fs;
 use futures_util::stream::StreamExt;
 use std::io::Write;
+
+#[derive(Serialize, Deserialize)]
+pub struct ManualData {
+    physicalinfo: String,
+    symptoms: String,
+    biometricinfo: String,
+    medicalhistory: String,
+}
+
+
 #[post("/api/manualupload")]
-pub async fn manualupload(mut payload: Multipart) -> impl Responder {
-    let dir = "./uploads/".to_owned();
-    fs::create_dir_all(&dir).unwrap();
-    while let Some(field) = payload.next().await {
-        let mut field = field.map_err(|_| ErrorInternalServerError("Error reading field"))?;
-        let filename = field
-            .content_disposition() 
-            .get_filename()
-            .map(|name| sanitize(name))
-            .unwrap_or_else(|| "default_filename".to_string()); 
-        let filepath = format!("{}/{}", dir, filename);
-        let mut f = web::block(|| File::create(filepath))
-            .await
-            .map_err(|_| ErrorInternalServerError("Error creating file"))??;
-        while let Some(chunk) = field.next().await {
-            let chunk = chunk.map_err(|_| ErrorInternalServerError("Error reading chunk"))?;
-            f = web::block(move || {
-                f.write_all(&chunk).map(|_| f)
-            })
-            .await
-            .map_err(|_| ErrorInternalServerError("Error writing chunk"))??;
+pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) -> impl Responder {
+    // Insert the data into the database
+    let result = sqlx::query(
+        //TO-DO: CHANGE THIS TO YOUR TABLE NAME AND MAKE SQL SCHEMA FOR IT IN ACTUAL DB
+        "INSERT INTO USERINFO (physicalinfo, symptoms, biometricinfo, medicalhistory) VALUES ($1, $2, $3, $4)"
+    )
+    .bind(&data.physicalinfo)
+    .bind(&data.symptoms)
+    .bind(&data.biometricinfo)
+    .bind(&data.medicalhistory)
+    .execute(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(_) => HttpResponse::Ok().body("Data uploaded successfully"),
+        Err(e) => {
+            println!("Error inserting data: {}", e);
+            HttpResponse::InternalServerError().body("Failed to upload data")
         }
     }
-
-    Ok::<HttpResponse, actix_web::Error>(HttpResponse::Ok().into())
 }
