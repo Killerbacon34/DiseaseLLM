@@ -47,7 +47,7 @@ CREATE TABLE USERINFO (
     Temperature FLOAT,
     Medications TEXT[],
     Allergies TEXT[],
-    AlcoholUse BOOL,
-    Smoking BOOL,
-    DrugUse BOOL
+    AlcoholUse TEXT,
+    Smoking TEXT,
+    DrugUse TEXT
 );

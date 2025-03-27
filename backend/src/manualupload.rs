@@ -20,9 +20,9 @@ pub struct ManualData {
     temperature: float,
     medications: String[],
     allergies: String[],
-    alcohol: bool,
-    smoking: bool,
-    druguse: bool,
+    alcohol: String,
+    smoking: String,
+    druguse: String,
 }
 
 
