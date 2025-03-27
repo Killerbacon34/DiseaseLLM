@@ -21,23 +21,33 @@ CREATE TABLE TOKENS (
     Token TEXT NOT NULL,
     Username INT NOT NULL,
     TimeCreated TIMESTAMP NOT NULL
-)
+);
 
 CREATE TABLE HISTORY (
     ID SERIAL PRIMARY KEY,
     Username TEXT NOT NULL,
     Age INT NOT NULL,
     Gender TEXT NOT NULL,
-    Symptoms: TEXT[] NOT NULL,
-    LabResults: TEXT[] NOT NULL,
-    Diagnosis: TEXT NOT NULL,
+    Symptoms TEXT[] NOT NULL,
+    LabResults TEXT[] NOT NULL,
+    Diagnosis TEXT NOT NULL,
     TimeCreated TIMESTAMP NOT NULL
-)
+);
 
 CREATE TABLE USERINFO (
     ID SERIAL PRIMARY KEY,
-    PhysicalInfo TEXT[],
+    Height INT,
+    Weight INT,
+    Age INT,
+    Gender TEXT,
+    Race TEXT,
     Symptoms TEXT[],
-    BiometricInfo TEXT[],
-    MedicalHistory TEXT[]
+    BloodPressure TEXT,
+    HeartRate INT,
+    Temperature FLOAT,
+    Medications TEXT[],
+    Allergies TEXT[],
+    AlcoholUse BOOL,
+    Smoking BOOL,
+    DrugUse BOOL
 );

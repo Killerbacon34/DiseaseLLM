@@ -8,10 +8,21 @@ use std::io::Write;
 
 #[derive(Serialize, Deserialize)]
 pub struct ManualData {
-    physicalinfo: String,
-    symptoms: String,
-    biometricinfo: String,
-    medicalhistory: String,
+    height: int, 
+    weight: int,
+    age: int,
+    gender: String,
+    race: String,
+    //Double check if this is correct
+    symptoms: String[],
+    bloodpressure: String,
+    heartrate: int,
+    temperature: float,
+    medications: String[],
+    allergies: String[],
+    alcohol: bool,
+    smoking: bool,
+    druguse: bool,
 }
 
 
@@ -20,12 +31,23 @@ pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) 
     // Insert the data into the database
     let result = sqlx::query(
         //TO-DO: CHANGE THIS TO YOUR TABLE NAME AND MAKE SQL SCHEMA FOR IT IN ACTUAL DB
-        "INSERT INTO USERINFO (physicalinfo, symptoms, biometricinfo, medicalhistory) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO USERINFO (height, weight, age, gender, race, symptoms, bloodpressure, heartrate, temperature, medications, allergies, alcohol, smoking, druguse) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
+
     )
-    .bind(&data.physicalinfo)
-    .bind(&data.symptoms)
-    .bind(&data.biometricinfo)
-    .bind(&data.medicalhistory)
+    .bind(&data.height)
+    .bind(&data.weight)
+    .bind(&data.age)
+    .bind(&data.gender)
+    .bind(&data.race)
+    .bind(&data.symptoms.join(","))
+    .bind(&data.bloodpressure)
+    .bind(&data.heartrate)
+    .bind(&data.temperature)
+    .bind(&data.medications.join(","))
+    .bind(&data.allergies.join(","))
+    .bind(&data.alcohol)
+    .bind(&data.smoking)
+    .bind(&data.druguse)
     .execute(pool.get_ref())
     .await;
 
