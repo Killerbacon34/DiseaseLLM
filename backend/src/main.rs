@@ -1,6 +1,6 @@
 use actix_web::{App, HttpServer, middleware::Logger, web, cookie::{self, SameSite, Key}};
 use actix_identity::{IdentityMiddleware}; 
-use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
+use actix_session::{config::PersistentSession, storage::{CookieSessionStore, RedisSessionStore}, SessionMiddleware};
 use actix_cors::Cors;
 use sqlx::{database, postgres:: { PgPool, PgPoolOptions }, Connection, PgConnection};
 use r2d2_redis::RedisConnectionManager;
@@ -34,7 +34,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manager = RedisConnectionManager::new("redis://127.0.0.1:6379").unwrap();
     let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
     println!("✅ Successfully connected to the redis server!");
-
+    let redis_session = RedisSessionStore::new("redis://127.0.0.1:6379").await.unwrap();
+    println!("✅ Successfully connected to the redis session store!");
     // Generate a secure random key for session middleware
 
     HttpServer::new(move || {
@@ -74,6 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .service(anonymous::anon_manual_upload)
             .service(anonymous::anon_check_results)
             .service(anonymous::anon_release)
+            .service(anonymous::check_session)
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
     .run()

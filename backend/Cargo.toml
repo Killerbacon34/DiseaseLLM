@@ -35,4 +35,4 @@ redis = "0.29.2"
 actix-identity = "0.8.0"
 r2d2 = "0.8.10"
 r2d2_redis = "0.14.0"
-actix-session = {version = "0.8.0", features = ["cookie-session"]} 
+actix-session = { version = "0.10.1", features = ["cookie-session", "redis-session"] } 

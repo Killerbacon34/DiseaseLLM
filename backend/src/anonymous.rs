@@ -7,12 +7,22 @@ use r2d2_redis::redis::Commands;
 use rand::RngCore;
 use crate::queryLLM; // Import the queryLLM module
 use base64::{engine::general_purpose::URL_SAFE, Engine};
-#[get("/anonapi/release")]
+/*#[get("/anonapi/release")]
 pub async fn anon_release(request: HttpRequest, session: Session)-> impl Responder {
     let mut random_bytes = [0u8; 32];
     rand::thread_rng().fill_bytes(&mut random_bytes);
     let session_token = URL_SAFE.encode(&random_bytes);
     session.insert("session_token", &session_token).unwrap();
+    Identity::login(&request.extensions(),session_token.clone()).unwrap();
+    println!("Provisioned session token: {}", session_token);
+    HttpResponse::Ok().body(format!("Session token provisioned: {}", session_token))
+}*/
+
+#[get("/anonapi/release")]
+pub async fn anon_release(request: HttpRequest,)-> impl Responder {
+    let mut random_bytes = [0u8; 32];
+    rand::thread_rng().fill_bytes(&mut random_bytes);
+    let session_token = URL_SAFE.encode(&random_bytes);
     Identity::login(&request.extensions(),session_token.clone()).unwrap();
     println!("Provisioned session token: {}", session_token);
     HttpResponse::Ok().body(format!("Session token provisioned: {}", session_token))
@@ -65,5 +75,12 @@ pub async fn anon_check_results(redis_pool: web::Data<r2d2::Pool<r2d2_redis::Red
         return HttpResponse::Unauthorized().body("Unauthorized")
     }
 }
+
+#[get("/check-session")]
+pub async fn check_session(id: Identity) -> impl Responder {
+    HttpResponse::Ok().body(format!("Session is active for token: {}", id.id().unwrap_or("unknown".to_string())))
+}
+
+
 
 
