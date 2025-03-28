@@ -1,6 +1,5 @@
 use actix_web::{HttpResponse, Responder, post, web, error::ErrorInternalServerError};
 use chrono::Utc;
-use crypto::common::typenum::Integer;
 use serde::{Serialize, Deserialize};
 use sqlx::PgPool;
 
@@ -48,7 +47,7 @@ pub async fn signup(pool: web::Data<PgPool>, data: web::Json<SignupData>) -> imp
     HttpResponse::Ok()
 }
 
-
+//TO-DO: CHANGE THIS TO MAKE USERNAME OPTIONAL AND TO ADD A FIELD FOR THE TOKEN
 #[derive(Serialize, Deserialize)]
 pub struct ReleaseData {
     accepted: bool,

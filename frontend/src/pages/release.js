@@ -8,20 +8,21 @@ export default function Release() {
 
     const handleClick = async (e) => {
         e.preventDefault();
-        /*try {
-            const response = await axios.post('https://backend-service-yzqvkugauq-uc.a.run.app/api/release', {
-                auth: sessionStorage.getItem('token'),
-                release: true,
+        try {
+            const response = await axios.post('http://0.0.0.0:4545/api/anontrack', {
             }, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            });*/
+            }).then((response) => {
+                sessionStorage.setItem('anonid', response.data.anonid);
+            }
+            );
             router.push('/upload');
-        /*}
+        }
         catch (err) {
             console.log(err);
-        }*/
+        }
     };
     return (<div>
       <h1>Medical Information Release Form</h1>

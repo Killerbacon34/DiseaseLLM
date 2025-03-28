@@ -1,25 +1,26 @@
-use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post};
-use actix_multipart::Multipart;
-use sanitize_filename::sanitize;
-use std::fs::File;
-use std::fs;
-use futures_util::stream::StreamExt;
-use std::io::Write;
+use std::collections::HashMap;
+use redis;
+
+use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post} ;
+use sqlx::PgPool;
+use serde::{Serialize, Deserialize};
+use uuid::Uuid;
+
 
 #[derive(Serialize, Deserialize)]
 pub struct ManualData {
-    height: int, 
-    weight: int,
-    age: int,
+    height: i32, 
+    weight: i32,
+    age: i32,
     gender: String,
     race: String,
     //Double check if this is correct
-    symptoms: String[],
+    symptoms: Vec<String>,
     bloodpressure: String,
-    heartrate: int,
-    temperature: float,
-    medications: String[],
-    allergies: String[],
+    heartrate: i32,
+    temperature: f32,
+    medications: Vec<String>, 
+    allergies: Vec<String>,
     alcohol: String,
     smoking: String,
     druguse: String,
@@ -32,7 +33,6 @@ pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) 
     let result = sqlx::query(
         //TO-DO: CHANGE THIS TO YOUR TABLE NAME AND MAKE SQL SCHEMA FOR IT IN ACTUAL DB
         "INSERT INTO USERINFO (height, weight, age, gender, race, symptoms, bloodpressure, heartrate, temperature, medications, allergies, alcohol, smoking, druguse) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
-
     )
     .bind(&data.height)
     .bind(&data.weight)
@@ -59,3 +59,4 @@ pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) 
         }
     }
 }
+

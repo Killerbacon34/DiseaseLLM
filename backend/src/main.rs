@@ -1,56 +1,88 @@
-//use std::{env, io};
-use actix_web::{App, HttpServer, middleware::Logger, web};
+use actix_web::{App, HttpServer, middleware::Logger, web, cookie::{self, SameSite, Key}};
+use actix_identity::{IdentityMiddleware}; 
+use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
 use actix_cors::Cors;
-use sqlx::{database, postgres:: { PgPool, PgPoolOptions }};
-use std::env; //FOR KEY STORAGE
+use sqlx::{database, postgres:: { PgPool, PgPoolOptions }, Connection, PgConnection};
+use r2d2_redis::RedisConnectionManager;
+use std::{env, time::Duration};
 use dotenv::dotenv;
+use rand::RngCore; // For generating a secure key
 mod upload;
 mod signup;
 mod login;
-//mod queryLLM;
+mod queryLLM;
+mod anonymous;
+mod manualupload;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let database_url = "postgres:///?0.0.0.0&port=5432&dbname=diseasellm&user=user&password=cybears";
+    let database_url = format!("postgres://{}:{}@{}:{}/{}", 
+        dotenv::var("DB_USER").unwrap(), 
+        dotenv::var("DB_PASSWORD").unwrap(), 
+        dotenv::var("DB_URL").unwrap(), 
+        dotenv::var("DB_PORT").unwrap(),
+        dotenv::var("DB_NAME").unwrap());
     println!("Connecting to {}", &database_url);
-    let pool = PgPoolOptions::new().max_connections(10).connect(&database_url).await
-    .expect("Failed to create pool");
+    let pool = PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&database_url)
+        .await?;
     println!("✅ Successfully connected to the database!");
     std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init(); 
+    let manager = RedisConnectionManager::new("redis://127.0.0.1:6379").unwrap();
+    let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
+    println!("✅ Successfully connected to the redis server!");
+
+    // Generate a secure random key for session middleware
+
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .wrap(Cors::default()
-                .allow_any_origin() 
-                .allow_any_method()
-                .allow_any_header()
-                .max_age(3600)
+            .wrap(
+                Cors::default()
+                    .allow_any_origin()
+                    .allow_any_method()
+                    .allow_any_header()
+                    .max_age(3600),
             )
+            .wrap(
+                IdentityMiddleware::builder()
+                    .visit_deadline(Some(Duration::from_secs(60 * 15))) // 15 min
+                    .login_deadline(Some(Duration::from_secs(60 * 30))) // 30 min
+                    .build(),
+            )
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::generate())
+                    .cookie_secure(false) // Set to `true` only if using HTTPS
+                    .cookie_http_only(true)
+                    .cookie_same_site(SameSite::Lax) // Use `Lax` for better compatibility
+                    .cookie_name("session_token".to_string())
+                    .session_lifecycle(
+                        PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
+                    )
+                    .build(),
+            )
+           
             .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(redis_pool.clone()))
             .service(upload::upload)
-            .service(
-              signup::signup
-            )
-            .service(
-                upload::upload
-            )
-            .service(   
-                login::login
-            )
-            /* .service(
-                queryLLM::query_clinical_bert
-            )*/
+            .service(signup::signup)
+            .service(login::login)
+            .service(manualupload::manualupload)
+            .service(anonymous::anon_manual_upload)
+            .service(anonymous::anon_check_results)
+            .service(anonymous::anon_release)
     })
-    .bind("0.0.0.0:4545")?
+    .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
     .run()
     .await?;
     Ok(())
 }
 
 async fn validate_token(pool: &PgPool, token: &str) -> bool {
-    sqlx::query("SELECT 1 FROM users WHERE token = $1")
+    sqlx::query("SELECT $1 FROM users WHERE token = $1")
         .bind(token)
         .fetch_one(pool)
         .await
