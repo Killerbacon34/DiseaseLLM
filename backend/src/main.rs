@@ -37,6 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let redis_session = RedisSessionStore::new("redis://127.0.0.1:6379").await.unwrap();
     println!("✅ Successfully connected to the redis session store!");
     // Generate a secure random key for session middleware
+    let key = Key::generate();
 
     HttpServer::new(move || {
         App::new()
@@ -55,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
             )
             .wrap(
-                SessionMiddleware::builder(CookieSessionStore::default(), Key::generate())
+                SessionMiddleware::builder(redis_session.clone(), key.clone())
                     .cookie_secure(false) // Set to `true` only if using HTTPS
                     .cookie_http_only(true)
                     .cookie_same_site(SameSite::Lax) // Use `Lax` for better compatibility
@@ -68,14 +69,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
            
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(redis_pool.clone()))
-            .service(upload::upload)
-            .service(signup::signup)
-            .service(login::login)
-            .service(manualupload::manualupload)
-            .service(anonymous::anon_manual_upload)
-            .service(anonymous::anon_check_results)
-            .service(anonymous::anon_release)
-            .service(anonymous::check_session)
+            .service(web::scope("/api")
+                .service(upload::upload)
+                .service(signup::signup)
+                .service(login::login)
+                .service(manualupload::manualupload)
+                .service(upload::checkconn)
+            )
+            .service(web::scope("/anonapi")
+                .service(anonymous::anon_manual_upload)
+                .service(anonymous::anon_check_results)
+            )
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
     .run()

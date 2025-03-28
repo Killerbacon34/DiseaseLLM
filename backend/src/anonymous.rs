@@ -21,7 +21,7 @@ pub async fn anon_release(request: HttpRequest, session: Session)-> impl Respond
 #[get("/anonapi/release")]
 pub async fn anon_release(request: HttpRequest,)-> impl Responder {
     let mut random_bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut random_bytes);
+    rand::rng().fill_bytes(&mut random_bytes);
     let session_token = URL_SAFE.encode(&random_bytes);
     Identity::login(&request.extensions(),session_token.clone()).unwrap();
     println!("Provisioned session token: {}", session_token);

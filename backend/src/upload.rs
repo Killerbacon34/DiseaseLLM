@@ -70,3 +70,10 @@ fn parsePDF(file: &str) -> String {
     // Parse the PDF file and return the text
     return "This is a placeholder".to_string();
 }
+
+
+#[post("/api/checkconn")]
+pub async fn checkconn() -> impl Responder {
+    println!("Connection check successful!");
+    HttpResponse::Ok().body("Connection check successful!")
+}
