@@ -20,7 +20,7 @@ pub struct ManualData {
     druguse: String,
 }
 
-#[post("/api/manualupload")]
+#[post("/manualupload")]
 pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) -> impl Responder {
     // Insert the data into the database
     let result = sqlx::query(

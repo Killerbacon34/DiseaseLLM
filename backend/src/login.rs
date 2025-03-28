@@ -18,7 +18,7 @@ pub struct LoginData {
     devid: String,
 }
 
-#[post("/api/login")]
+#[post("/login")]
 pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl Responder {
     // Query the database to check if the user exists
     let user_result = sqlx::query(

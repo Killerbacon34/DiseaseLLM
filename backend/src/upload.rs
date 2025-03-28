@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post};
+use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post, get};
 use actix_multipart::Multipart;
 use sanitize_filename::sanitize;
 use std::fs::File;
@@ -6,7 +6,7 @@ use std::fs;
 use futures_util::stream::StreamExt;
 use std::io::Write;
 use pdf_extract::*;
-#[post("/api/upload")]
+#[post("/upload")]
 pub async fn upload (mut payload: Multipart) -> impl Responder {
     let dir = "./uploads/".to_owned();
     fs::create_dir_all(&dir).unwrap();
@@ -72,7 +72,7 @@ fn parsePDF(file: &str) -> String {
 }
 
 
-#[post("/api/checkconn")]
+#[get("/checkconn")]
 pub async fn checkconn() -> impl Responder {
     println!("Connection check successful!");
     HttpResponse::Ok().body("Connection check successful!")
