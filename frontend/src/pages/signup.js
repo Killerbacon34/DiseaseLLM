@@ -49,7 +49,7 @@ const Signup = () => {
             localStorage.setItem('token', token);
             setError('');
             alert('Signup successful!');
-            router.push('/release');
+            router.push('/release?new=true');
         } catch (err) {
             setError('Signup failed. Please try again.');
             console.log(err);

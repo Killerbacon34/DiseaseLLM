@@ -61,7 +61,7 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl 
 pub struct TokenData {
     token: String,
 }
-
+/*
 #[post("/api/checktoken")]
 pub async fn checktoken(pool: web::Data<PgPool>, data: web::Json<TokenData>) -> impl Responder {
     let token = &data.token;
@@ -97,7 +97,7 @@ pub async fn checktoken(pool: web::Data<PgPool>, data: web::Json<TokenData>) -> 
             HttpResponse::InternalServerError().body(format!("Internal server error: {}", e))
         }
     }
-}
+}*/
 async fn gentoken() -> String {
 // TODO: REMEMBER TO ADD DEVID TO THE TOKEN
     let mut rando = [0u8; 32];
@@ -105,21 +105,7 @@ async fn gentoken() -> String {
     let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
     return token;
 }
-#[get("/api/anontrack")]
-async fn anontrack(pool: Data<PgPool>) -> impl Responder {
-    let token = gentoken().await;
-    let time_created = Utc::now();
-    println!("Token: {:?}", token);
-    _ = sqlx::query(
-        "INSERT INTO tokens (token, timecreated) VALUES ($1, $2)",
-    )
-    .bind(&token)
-    .bind(time_created.to_rfc3339())
-    .execute(pool.get_ref())
-    .await
-    .map_err(|e| ErrorInternalServerError(e));
-    HttpResponse::Ok().json(token)
-}
+
 async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
     let _ = sqlx::query("DELETE FROM tokens WHERE token = $1")
         .bind(token)
