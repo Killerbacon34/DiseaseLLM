@@ -60,26 +60,27 @@ export default function ManualUpload() {
     e.preventDefault();
     try {
       const formData = {
-        height: e.target.height.value,
-        weight: e.target.weight.value,
-        age: e.target.age.value,
+        height: parseInt(e.target.height.value),
+        weight: parseInt(e.target.weight.value),
+        age: parseInt(e.target.age.value),
         gender: selectedGender === 'Other' ? genderOther : selectedGender,
         race: selectedRace === 'Other' ? raceOther : selectedRace,
         symptoms: selectedSymptoms.map(s => s.value),
         bloodpressure: e.target.bloodpressure.value,
-        heartRate: e.target.heartRate.value,
-        temperature: e.target.temperature.value,
+        heartrate: parseInt(e.target.heartrate.value),
+        temperature: parseFloat(e.target.temperature.value),
         medications: selectedMedications.map(m => m.value),
         allergies: selectedAllergies.map(a => a.value),
-        alcoholuse: e.target.alcoholuse.value,
+        alcohol: e.target.alcoholuse.value,
         smoking: e.target.smoking.value,
         druguse: e.target.druguse.value,
       };
-
+      console.log('Final Form Data:', JSON.stringify(formData, null, 2));
       const response = await axios.post('http://localhost:4545/api/manualupload', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
+        timeout: 5000
       });
       alert('Upload successful!');
       router.push('/');
@@ -258,8 +259,8 @@ export default function ManualUpload() {
             <h3 className="mt-4 mb-3">Biometric Information</h3>
             <label htmlFor="bloodpressure" className="form-label">Blood Pressure (mmHg):</label><br></br>
             <input type="number" id="bloodpressure" name="bloodpressure" className="form-control" required></input><br></br>
-            <label htmlFor="heartRate" className="form-label">Heart Rate (bpm):</label><br></br>
-            <input type="number" id="heartRate" name="heartRate" className="form-control" required></input><br></br>
+            <label htmlFor="heartrate" className="form-label">Heart Rate (bpm):</label><br></br>
+            <input type="number" id="heartrate" name="heartrate" className="form-control" required></input><br></br>
             <label htmlFor="temperature" className="form-label">Temperature (°C):</label><br></br>
             <input type="number" id="temperature" name="temperature" className="form-control" step="0.1" required></input><br></br>
             

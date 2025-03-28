@@ -1,50 +1,48 @@
-use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post};
-use actix_multipart::Multipart;
-use sanitize_filename::sanitize;
-use std::fs::File;
-use std::fs;
-use futures_util::stream::StreamExt;
-use std::io::Write;
+use actix_web::{HttpResponse, web, Responder, post};
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 #[derive(Serialize, Deserialize)]
 pub struct ManualData {
-    height: int, 
-    weight: int,
-    age: int,
+    height: i32, 
+    weight: i32,
+    age: i32,
     gender: String,
     race: String,
-    //Double check if this is correct
-    symptoms: String[],
+    symptoms: Vec<String>,  
     bloodpressure: String,
-    heartrate: int,
-    temperature: float,
-    medications: String[],
-    allergies: String[],
+    heartrate: i32,
+    temperature: f64,
+    medications: Vec<String>,
+    allergies: Vec<String>,
     alcohol: String,
     smoking: String,
     druguse: String,
 }
 
-
 #[post("/api/manualupload")]
 pub async fn manualupload(pool: web::Data<PgPool>, data: web::Json<ManualData>) -> impl Responder {
     // Insert the data into the database
     let result = sqlx::query(
-        //TO-DO: CHANGE THIS TO YOUR TABLE NAME AND MAKE SQL SCHEMA FOR IT IN ACTUAL DB
-        "INSERT INTO USERINFO (height, weight, age, gender, race, symptoms, bloodpressure, heartrate, temperature, medications, allergies, alcohol, smoking, druguse) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)"
-
+        "
+        INSERT INTO USERINFO (
+            Height, Weight, Age, Gender, Race, 
+            Symptoms, BloodPressure, HeartRate, Temperature, 
+            Medications, Allergies, AlcoholUse, Smoking, DrugUse
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        "
     )
-    .bind(&data.height)
-    .bind(&data.weight)
-    .bind(&data.age)
+    .bind(data.height)
+    .bind(data.weight)
+    .bind(data.age)
     .bind(&data.gender)
     .bind(&data.race)
-    .bind(&data.symptoms.join(","))
+    .bind(&data.symptoms)
     .bind(&data.bloodpressure)
-    .bind(&data.heartrate)
-    .bind(&data.temperature)
-    .bind(&data.medications.join(","))
-    .bind(&data.allergies.join(","))
+    .bind(data.heartrate)
+    .bind(data.temperature)
+    .bind(&data.medications)
+    .bind(&data.allergies)
     .bind(&data.alcohol)
     .bind(&data.smoking)
     .bind(&data.druguse)
