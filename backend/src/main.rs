@@ -6,13 +6,11 @@ use sqlx::{database, postgres:: { PgPool, PgPoolOptions }, Connection, PgConnect
 use r2d2_redis::RedisConnectionManager;
 use std::{env, time::Duration};
 use dotenv::dotenv;
-use rand::RngCore; // For generating a secure key
 mod upload;
 mod signup;
 mod login;
 mod queryLLM;
 mod anonymous;
-mod manualupload;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -66,22 +64,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .build(),
             )
-           
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(redis_pool.clone()))
             .service(web::scope("/auth")
                 .service(login::login)
-                .service(anonymous::anon_release)
+                .service(signup::release)
                 .service(signup::signup)
             )
             .service(web::scope("/api")
-                .service(upload::upload)
-                .service(manualupload::manualupload)
-                .service(upload::checkconn)
+                .service(upload::upload_file)
+                .service(upload::upload_form)
+                .service(upload::status)
             )
-            .service(web::scope("/anonapi")
+            .service(web::scope("/anon")
                 .service(anonymous::anon_manual_upload)
                 .service(anonymous::anon_check_results)
+                .service(anonymous::anon_release)
+                .service(anonymous::checkconn)
             )
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?

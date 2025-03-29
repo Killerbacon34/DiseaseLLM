@@ -82,6 +82,9 @@ pub async fn check_session(id: Identity) -> impl Responder {
     HttpResponse::Ok().body(format!("Session is active for token: {}", id.id().unwrap_or("unknown".to_string())))
 }
 
-
+#[get("/checkconn")]
+pub async fn checkconn() -> impl Responder {
+    HttpResponse::Ok().body("Connection is active")
+}
 
 

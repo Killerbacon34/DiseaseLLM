@@ -578,6 +578,7 @@ dependencies = [
  "r2d2_redis",
  "rand 0.9.0",
  "redis 0.29.2",
+ "regex",
  "reqwest",
  "sanitize-filename",
  "serde",
