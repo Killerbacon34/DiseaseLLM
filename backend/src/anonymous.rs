@@ -37,9 +37,9 @@ pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::Red
         con.set(format!("anonDeepSeek_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
         con.set(format!("anonGemini_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
         con.set(format!("anonConsensus_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
-        let _ = queryLLM::queryDeepSeekR1( id.id().unwrap(), data.clone(), redis_pool.clone(), db_pool.clone());
-        let _ = queryLLM::queryGemini( id.id().unwrap(), data.clone(), redis_pool.clone());
-        let _ = queryLLM::queryLlama( id.id().unwrap(), data.clone(), redis_pool.clone());
+        // let _ = queryLLM::queryDeepSeekR1( id.id().unwrap(), data.clone(), redis_pool.clone(), db_pool.clone());
+        // let _ = queryLLM::queryGemini( id.id().unwrap(), data.clone(), redis_pool.clone());
+        // let _ = queryLLM::queryLlama( id.id().unwrap(), data.clone(), redis_pool.clone());
        Ok(HttpResponse::Ok().body("Data uploaded successfully"))
     } else {
        Ok(HttpResponse::Unauthorized().body("Unauthorized"))
