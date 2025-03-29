@@ -161,9 +161,9 @@ pub async fn upload_form(pool: web::Data<PgPool>, data: web::Json<ManualData>,
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
         con.set(format!("{}_ready", id.id().unwrap()), 0).map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
         let data_value = serde_json::to_value((*data).clone()).map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
-        queryLLM::queryDeepSeekR1(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query DeepSeek"))?;
-        queryLLM::queryGemini(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Gemini"))?;
-        queryLLM::queryLlama(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Llama"))?;
+        queryLLM::queryDeepSeekR1(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
+        //queryLLM::queryGemini(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
+        //queryLLM::queryLlama(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
     } else {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     } 

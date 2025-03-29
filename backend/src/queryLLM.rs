@@ -163,7 +163,7 @@ pub async fn queryGemini(id: String, data: Value, redis_pool: web::Data<r2d2::Po
     
 }
 
-pub async fn queryLlama(id: String, data: HashMap<String, String>, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, db_pool: web::Data<PgPool>) {
+pub async fn queryLlama(id: String, data: Value, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, db_pool: web::Data<PgPool>) {
     let payload = json!({
         //TODO: FIND OUT WHAT THE INPUTS SHOULD BE
         "mode": "nvidia/llama-3.1-nemotron-70b-instruct:free",
@@ -185,7 +185,7 @@ pub async fn queryLlama(id: String, data: HashMap<String, String>, redis_pool: w
     .header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
     .json(&payload)
     .send()
-    .await.map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
-    let output= response.json::<Value>().await.map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+    .await.map_err(|e| actix_web::error::ErrorInternalServerError(e));
+    let output= response.json::<Value>().await.map_err(|e| actix_web::error::ErrorInternalServerError(e));
     println!("{:#?}", output);
 }
