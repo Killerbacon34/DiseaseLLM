@@ -136,7 +136,7 @@ pub async fn upload_file(mut payload: Multipart) -> impl Responder {
     )
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct ManualData {
     height: i32, 
     weight: i32,
@@ -160,17 +160,10 @@ pub async fn upload_form(pool: web::Data<PgPool>, data: web::Json<ManualData>,
     if let Some(id) = id {
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
         con.set(format!("{}_ready", id.id().unwrap()), 0).map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
-        let data_map: std::collections::HashMap<String, String> = serde_json::to_value(&*data)
-            .map_err(|_| ErrorInternalServerError("Failed to serialize data"))?
-            .as_object()
-            .ok_or_else(|| ErrorInternalServerError("Failed to convert data to map"))?
-            .iter()
-            .map(|(k, v)| (k.clone(), v.to_string()))
-            .collect();
-
-        queryLLM::queryDeepSeekR1(id.id().unwrap(), data_map.clone(), redis_pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query DeepSeek"))?;
-        queryLLM::queryGemini(id.id().unwrap(), data_map.clone(), redis_pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Gemini"))?;
-        queryLLM::queryLlama(id.id().unwrap(), data_map.clone(), redis_pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Llama"))?;
+        let data_value = serde_json::to_value((*data).clone()).map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
+        queryLLM::queryDeepSeekR1(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query DeepSeek"))?;
+        queryLLM::queryGemini(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Gemini"))?;
+        queryLLM::queryLlama(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone()).await.map_err(|_| ErrorInternalServerError("Failed to query Llama"))?;
     } else {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
     } 
