@@ -51,3 +51,10 @@ CREATE TABLE USERINFO (
     Smoking TEXT,
     DrugUse TEXT
 );
+
+CREATE TABLE RESULTS(
+    ID SERIAL PRIMARY KEY,
+    Diagnosis TEXT NOT NULL,
+    Treatment TEXT NOT NULL,
+    DrugPlan TEXT NOT NULL
+);

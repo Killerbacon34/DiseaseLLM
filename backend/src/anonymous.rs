@@ -7,6 +7,7 @@ use r2d2_redis::redis::Commands;
 use rand::RngCore;
 use crate::queryLLM; // Import the queryLLM module
 use base64::{engine::general_purpose::URL_SAFE, Engine};
+use sqlx::PgPool;
 /*#[get("/anonapi/release")]
 pub async fn anon_release(request: HttpRequest, session: Session)-> impl Responder {
     let mut random_bytes = [0u8; 32];
@@ -29,14 +30,14 @@ pub async fn anon_release(request: HttpRequest,)-> impl Responder {
 }
 
 #[post("/manualupload")]
-pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>, data: web::Json<HashMap<String, String>>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>, data: web::Json<HashMap<String, String>>, db_pool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     if let Some(id) = id {
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
         con.set(format!("anonLlama_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
         con.set(format!("anonDeepSeek_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
         con.set(format!("anonGemini_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
         con.set(format!("anonConsensus_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
-        let _ = queryLLM::queryDeepSeekR1( id.id().unwrap(), data.clone(), redis_pool.clone());
+        let _ = queryLLM::queryDeepSeekR1( id.id().unwrap(), data.clone(), redis_pool.clone(), db_pool.clone());
         let _ = queryLLM::queryGemini( id.id().unwrap(), data.clone(), redis_pool.clone());
         let _ = queryLLM::queryLlama( id.id().unwrap(), data.clone(), redis_pool.clone());
        Ok(HttpResponse::Ok().body("Data uploaded successfully"))

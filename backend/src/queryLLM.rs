@@ -1,18 +1,119 @@
 use std::collections::HashMap;
-
-use actix_web::{HttpResponse, Responder, post, web, get};
+use actix_web::{HttpResponse, Responder, web};
 use reqwest::Client;
 use serde_json::{json, Value};
-use dotenv::dotenv;
-use sqlx::{pool, PgPool};
-pub async fn queryDeepSeekR1(id: String, data: HashMap<String, String>, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>) -> Result<HttpResponse, actix_web::Error> {
+use sqlx::PgPool;
+
+pub async fn queryDeepSeekR1(
+    id: String,
+    data: HashMap<String, String>,
+    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
+    db_pool: web::Data<PgPool>
+) -> Result<HttpResponse, actix_web::Error> {
+    // Fetch user data from database
+    #[derive(sqlx::FromRow)]
+    struct UserInfo {
+        height: Option<i32>,
+        weight: Option<i32>,
+        age: Option<i32>,
+        gender: Option<String>,
+        race: Option<String>,
+        symptoms: Option<Vec<String>>,
+        blood_pressure: Option<String>,
+        heart_rate: Option<i32>,
+        temperature: Option<f32>,
+        medications: Option<Vec<String>>,
+        allergies: Option<Vec<String>>,
+        alcohol_use: Option<String>,
+        smoking: Option<String>,
+        drug_use: Option<String>,
+    }
+
+    let user_info: UserInfo = sqlx::query_as("
+        SELECT Height, Weight, Age, Gender, Race, Symptoms, BloodPressure, 
+               HeartRate, Temperature, Medications, Allergies, AlcoholUse, 
+               Smoking, DrugUse
+        FROM USERINFO WHERE id = $1")
+    .bind(&id)
+    .fetch_one(db_pool.get_ref())
+    .await
+    .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+
+    let mut prompt = String::new();
+
+    prompt.push_str(&format!("I am a {} year old {} {}. ", 
+        user_info.age.unwrap_or(0), 
+        user_info.gender.as_deref().unwrap_or("unknown"), 
+        user_info.race.as_deref().unwrap_or("")
+    ));
+    
+    prompt.push_str(&format!("My height is {} cm and weight is {} kg. ", 
+        user_info.height.unwrap_or(0), 
+        user_info.weight.unwrap_or(0)
+    ));
+    
+    if let Some(bp) = user_info.blood_pressure {
+        prompt.push_str(&format!("My blood pressure is {}. ", bp));
+    }
+    if let Some(hr) = user_info.heart_rate {
+        prompt.push_str(&format!("My heart rate is {} bpm. ", hr));
+    }
+    if let Some(temp) = user_info.temperature {
+        prompt.push_str(&format!("My temperature is {}°C. ", temp));
+    }
+    
+    if let Some(symptoms) = user_info.symptoms {
+        if !symptoms.is_empty() {
+            prompt.push_str(&format!("I'm experiencing these symptoms: {}. ", 
+                symptoms.join(", ")
+            ));
+        }
+    }
+    
+    if let Some(meds) = user_info.medications {
+        if !meds.is_empty() {
+            prompt.push_str(&format!("I'm currently taking these medications: {}. ", 
+                meds.join(", ")
+            ));
+        }
+    }
+    
+    if let Some(allergies) = user_info.allergies {
+        if !allergies.is_empty() {
+            prompt.push_str(&format!("I have these allergies: {}. ", 
+                allergies.join(", ")
+            ));
+        }
+    }
+    
+    if let Some(alcohol) = user_info.alcohol_use {
+        prompt.push_str(&format!("Alcohol use: {}. ", alcohol));
+    }
+    if let Some(smoking) = user_info.smoking {
+        prompt.push_str(&format!("Smoking status: {}. ", smoking));
+    }
+    if let Some(drugs) = user_info.drug_use {
+        prompt.push_str(&format!("Drug use: {}. ", drugs));
+    }
+    
+    if let Some(query) = data.get("query") {
+        prompt.push_str(&format!("My question is: {}", query));
+    } else {
+        prompt.push_str("What advice can you give me about my health?");
+    }
+
     let payload = json!({
         //TODO: FIND OUT WHAT THE INPUTS SHOULD BE
         "mode": "deepseek/deepseek-r1-zero:free",
         "messages": [
             {
                 "role": "user",
-                "content": "I have a headache, what are the options?"
+                "content": "You are a knowledgeable medical assistant. Provide helpful, 
+                evidence-based advice while reminding users to consult with their doctor for professional medical advice."
+            }, 
+            {
+                "role": "user",
+                "content": prompt
             }
         ]
     });
