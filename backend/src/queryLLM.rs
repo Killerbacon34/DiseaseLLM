@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use actix_multipart::form::json::Json;
-use actix_web::{HttpResponse, Responder, web};
+use actix_web::{error::ErrorInternalServerError, web, HttpResponse, Responder};
+use r2d2_redis::redis::Commands;
 use reqwest::Client;
 use serde_json::{json, Value};
 use sqlx::PgPool;
@@ -8,9 +9,9 @@ use sqlx::PgPool;
 pub async fn queryDeepSeekR1(
     id: String,
     data: Value,
-    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
     db_pool: web::Data<PgPool>
 ) -> Result<(), actix_web::Error> {
+    println!("QUERYING:::: {}", id);
     // Fetch user data from database
     // #[derive(sqlx::FromRow)]
     // struct UserInfo {
@@ -38,7 +39,7 @@ pub async fn queryDeepSeekR1(
     // .bind(&id)
     // .fetch_one(db_pool.get_ref())
     // .await
-    // .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+    //.map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
 
     let mut prompt = String::new();
 
@@ -124,7 +125,7 @@ pub async fn queryDeepSeekR1(
 
     let payload = json!({
         //TODO: FIND OUT WHAT THE INPUTS SHOULD BE
-        "mode": "deepseek/deepseek-r1-zero:free",
+        "model": "deepseek/deepseek-r1-zero:free",
         "messages": [
             {
                 "role": "user",
@@ -152,14 +153,21 @@ pub async fn queryDeepSeekR1(
     .await
     .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     let output= response.json::<Value>().await.map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
-    println!("{:#?}", output);
+    println!("{:#?}", output["choices"][0]["message"]["content"]);
+    // add value to the database
+    sqlx::query("UPDATE results SET Deepseek=$1 WHERE id = $2")
+        .bind(output["choices"][0]["message"]["content"].as_str().unwrap())
+        .bind(&id)
+        .execute(db_pool.get_ref())
+        .await
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     Ok(())
 }
 
 pub async fn queryGemini(id: String, data: Value, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, db_pool: web::Data<PgPool>) -> Result<(), actix_web::Error>{
     let payload = json!({
         //TODO: FIND OUT WHAT THE INPUTS SHOULD BE
-        "mode": "google/gemini-2.5-pro-exp-03-25:free",
+        "model": "google/gemini-2.5-pro-exp-03-25:free",
         "messages": [
             {
                 "role": "user",
@@ -211,5 +219,5 @@ pub async fn queryLlama(id: String, data: Value, redis_pool: web::Data<r2d2::Poo
     .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     let output = response.json::<Value>().await.map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
     println!("{:#?}", output);
-    Ok(())
+    return Ok(());
 }

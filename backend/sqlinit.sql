@@ -53,8 +53,8 @@ CREATE TABLE USERINFO (
 );
 
 CREATE TABLE RESULTS(
-    ID SERIAL PRIMARY KEY,
-    Diagnosis TEXT NOT NULL,
-    Treatment TEXT NOT NULL,
-    DrugPlan TEXT NOT NULL
+    ID TEXT PRIMARY KEY,
+    Deepseek TEXT,
+    Gemini TEXT,
+    Llama TEXT
 );

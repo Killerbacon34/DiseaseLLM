@@ -72,7 +72,7 @@ function MyNavbar() {
               {!user && <Nav.Link href="/signup">Sign Up</Nav.Link>}
               {!user && <Nav.Link href="/login">Login</Nav.Link>}
               <Nav.Link href="/upload">Document Upload</Nav.Link>
-              <Nav.Link href="/manualupload">Manual Upload</Nav.Link>
+              <Nav.Link href="/release">Manual Upload</Nav.Link>
               <Nav.Link href="/approval">View Diagnoses</Nav.Link>
           </Nav>
         </Offcanvas.Body>

@@ -1,17 +1,16 @@
 use actix_identity::Identity;
-use actix_web::{HttpResponse, web, Responder, error::ErrorInternalServerError, post, get};
+use actix_web::{error::ErrorInternalServerError, get, post, rt::spawn, web, HttpResponse, Responder};
 use actix_multipart::Multipart;
 use r2d2_redis::redis::Commands;
 use sanitize_filename::sanitize;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
-use futures_util::stream::StreamExt;
+use futures_util::{stream::StreamExt, FutureExt};
 use std::io::Write;
-use pdf_extract::*;
-use sqlx::{query, PgPool};
+use sqlx::PgPool;
 use regex::Regex;
-
-use crate::queryLLM; // Add this import for regex functionality
+use tokio::time::{timeout, Duration};
+use crate::queryLLM; 
 
 #[post("/uploadFile")]
 pub async fn upload_file(mut payload: Multipart) -> impl Responder {
@@ -49,14 +48,14 @@ pub async fn upload_file(mut payload: Multipart) -> impl Responder {
         let filepath = format!("{}/{}", dir, filename);
         let mut f = web::block({
             let filepath = filepath.clone();
-            move || File::create(filepath)
+            move || -> std::io::Result<File> { File::create(filepath) }
         })
         .await
         .map_err(|_| ErrorInternalServerError("Error creating file"))??;
 
         while let Some(chunk) = field.next().await {
             let chunk = chunk.map_err(|_| ErrorInternalServerError("Error reading chunk"))?;
-            f = web::block(move || f.write_all(&chunk).map(|_| f))
+            f = web::block(move || -> std::io::Result<File> { f.write_all(&chunk).map(|_| f) })
                 .await
                 .map_err(|_| ErrorInternalServerError("Error writing chunk"))??;
         }
@@ -155,53 +154,99 @@ pub struct ManualData {
 }
 
 #[post("/uploadForm")]
-pub async fn upload_form(pool: web::Data<PgPool>, data: web::Json<ManualData>, 
-    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> Result<HttpResponse, actix_web::Error>{
+pub async fn upload_form(
+    pool: web::Data<PgPool>,
+    data: web::Json<ManualData>,
+    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
+    id: Option<Identity>,
+) -> Result<HttpResponse, actix_web::Error> {
+
     if let Some(id) = id {
+        let user_id = id.id().unwrap().to_string();
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
-        con.set(format!("{}_ready", id.id().unwrap()), 0).map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
-        let data_value = serde_json::to_value((*data).clone()).map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
-        queryLLM::queryDeepSeekR1(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
-        //queryLLM::queryGemini(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
-        //queryLLM::queryLlama(id.id().unwrap(), data_value.clone(), redis_pool.clone(), pool.clone());
+
+        // Initialize Redis key to track task progress
+        con.set(format!("{}_ready", user_id), 0)
+            .map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
+
+        let data_value = serde_json::to_value((*data).clone())
+            .map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
+
+        // Spawn background tasks
+        let redis_pool_clone = redis_pool.clone();
+        let pool_clone = pool.clone();
+        //add column to db for user id and data value
+        sqlx::query("INSERT INTO results (id) VALUES ($1)")
+            .bind(&user_id)
+            .execute(pool.get_ref())
+            .await
+            .map_err(|_| ErrorInternalServerError("Failed to insert data into database"))?;
+        tokio::spawn(async move {
+            let tasks = vec![
+                spawn_task_with_timeout(
+                    "DeepSeekR1",
+                    Duration::from_secs(60), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryDeepSeekR1(user_id.clone(), data_value.clone(), pool_clone.clone())
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in DeepSeekR1: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                )/*
+                spawn_task_with_timeout(
+                    "Gemini",
+                    Duration::from_secs(10), // 10-second timeout
+                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), redis_pool_clone.clone(), pool_clone.clone()),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),
+                spawn_task_with_timeout(
+                    "Llama",
+                    Duration::from_secs(10), // 10-second timeout
+                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), redis_pool_clone.clone(), pool_clone.clone()),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),*/
+            ];
+
+            // Wait for all tasks to complete
+            for task in tasks {
+                if let Err(e) = task.await {
+                    println!("Task failed: {:?}", e);
+                }
+            }
+        });
+        return Ok(HttpResponse::Ok().body("Tasks are running in the background"));
     } else {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
-    } 
-
-
-    // TODOL: ADD SESSION TOKEN TO CHECK IF THE USER IS AUTHORIZED TO UPLOAD DATA
-    let result = sqlx::query(
-        "
-        INSERT INTO USERINFO (
-            Height, Weight, Age, Gender, Race, 
-            Symptoms, BloodPressure, HeartRate, Temperature, 
-            Medications, Allergies, AlcoholUse, Smoking, DrugUse
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        "
-    )
-    .bind(data.height)
-    .bind(data.weight)
-    .bind(data.age)
-    .bind(&data.gender)
-    .bind(&data.race)
-    .bind(&data.symptoms)
-    .bind(&data.bloodpressure)
-    .bind(data.heartrate)
-    .bind(data.temperature)
-    .bind(&data.medications)
-    .bind(&data.allergies)
-    .bind(&data.alcohol)
-    .bind(&data.smoking)
-    .bind(&data.druguse)
-    .execute(pool.get_ref())
-    .await;
-    match result {
-        Ok(_) => Ok(HttpResponse::Ok().body("Data uploaded successfully")),
-        Err(e) => {
-            println!("Error inserting data: {}", e);
-            Ok(HttpResponse::InternalServerError().body("Failed to upload data"))
-        }
     }
+}
+
+/// Helper function to spawn a task with a timeout
+fn spawn_task_with_timeout<F>(
+    task_name: &'static str,
+    duration: Duration,
+    task: F,
+    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
+    user_id: String,
+) -> tokio::task::JoinHandle<()>
+where
+    F: std::future::Future<Output = ()> + Send + 'static,
+{
+    tokio::spawn(async move {
+        match timeout(duration, task).await {
+            Ok(_) => {
+                // Task completed successfully
+                let mut con = redis_pool.get().unwrap();
+                let _: i32 = con.incr(format!("{}_ready", user_id), 1).unwrap();
+                println!("Task '{}' completed successfully", task_name);
+            }
+            Err(_) => {
+                // Task timed out
+                println!("Task '{}' timed out", task_name);
+            }
+        }
+    })
 }
 
 #[get("/status")]
@@ -209,8 +254,10 @@ pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnection
     if let Some(id) = id {
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
         let k : Option<i32> = con.get(format!("{}_ready", id.id().unwrap())).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
+        println!("Key: {:?}", k); // Debugging line to see the value of k
         if let Some(k) = k {
-            if k >= 3 {
+            if k >= 1 {
+                println!("Finished");
                 return Ok(HttpResponse::Ok().body("true"));
             } else {
                 return Ok(HttpResponse::Accepted().body("false"));

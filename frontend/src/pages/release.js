@@ -10,21 +10,20 @@ export default function Release() {
     const handleClick = async (e) => {
         e.preventDefault();
         try {
-            let apiUrl = 'http://0.0.0.0:4545/auth/release'; // Default API
+            let apiUrl = 'http://localhost:4545/anon/release'; // Default API
             if (previousPage === '/signup') {
-                apiUrl = 'http://0.0.0.0:4545/auth/release'; // API for signup page
-            } else {
-                apiUrl = 'http://0.0.0.0:4545/anon/release'; // API for other pages
+                apiUrl = 'http://localhost:4545/auth/release'; // API for signup page
             }
 
-            const response = await axios.post(apiUrl, {}, {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const response = await axios.get(apiUrl, {}, {
+                withCredentials: true,
             });
-
-            sessionStorage.setItem('anonid', response.data.anonid);
-            router.push('/manualupload');
+            if (response.status !== 200) {
+                throw new Error('Failed to fetch data');
+            }
+            //sessionStorage.setItem('Auth', response.data.token);
+            //sessionStorage.setItem('anonid', response.data.anonid);
+            router.push('/upload');
         } catch (err) {
             console.log(err);
         }

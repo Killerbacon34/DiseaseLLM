@@ -78,8 +78,13 @@ pub async fn anon_check_results(redis_pool: web::Data<r2d2::Pool<r2d2_redis::Red
 }
 
 #[get("/check-session")]
-pub async fn check_session(id: Identity) -> impl Responder {
-    HttpResponse::Ok().body(format!("Session is active for token: {}", id.id().unwrap_or("unknown".to_string())))
+pub async fn check_session(id: Option<Identity>) -> impl Responder {
+    if let Some(id) = id {
+        println!("Session ID: {}", id.id().unwrap_or("unknown".to_string()));
+    } else {
+        println!("No session found");
+    }
+    HttpResponse::Ok().body("Session check complete")
 }
 
 #[get("/checkconn")]

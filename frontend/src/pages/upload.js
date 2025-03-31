@@ -148,7 +148,8 @@ export default function Upload() {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 5000
+        timeout: 5000,
+        withCredentials: true,
       });
       alert('Upload successful!');
       router.push('/loading');

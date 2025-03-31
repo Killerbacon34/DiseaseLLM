@@ -42,9 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
-                    .allow_any_origin()
+                    //.allow_any_origin()
+                    .allowed_origin("http://localhost:3000")
                     .allow_any_method()
                     .allow_any_header()
+                    .supports_credentials()
                     .max_age(3600),
             )
             .wrap(
@@ -81,6 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::anon_check_results)
                 .service(anonymous::anon_release)
                 .service(anonymous::checkconn)
+                .service(anonymous::check_session)
             )
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
