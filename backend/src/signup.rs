@@ -1,6 +1,5 @@
 use actix_web::{HttpResponse, Responder, post, web, error::ErrorInternalServerError};
 use chrono::Utc;
-use crypto::common::typenum::Integer;
 use serde::{Serialize, Deserialize};
 use sqlx::PgPool;
 
@@ -18,7 +17,7 @@ pub struct SignupData {
     origdevid: String,
 }
 
-#[post("/api/signup")]
+#[post("signup")]
 pub async fn signup(pool: web::Data<PgPool>, data: web::Json<SignupData>) -> impl Responder {
     let mut device_ids = Vec::new(); 
     device_ids.push(data.origdevid.clone());
@@ -48,13 +47,13 @@ pub async fn signup(pool: web::Data<PgPool>, data: web::Json<SignupData>) -> imp
     HttpResponse::Ok()
 }
 
-
+//TO-DO: CHANGE THIS TO MAKE USERNAME OPTIONAL AND TO ADD A FIELD FOR THE TOKEN
 #[derive(Serialize, Deserialize)]
 pub struct ReleaseData {
     accepted: bool,
     username: String,
 }
-#[post("/api/release")]
+#[post("/release")]
 pub async fn release(pool: web::Data<PgPool>, data: web::Json<ReleaseData>) -> impl Responder {
     let time_signed = Utc::now();
     _ = sqlx::query(

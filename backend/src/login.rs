@@ -1,14 +1,16 @@
-use chrono::Utc;
-use actix_web::error::ErrorInternalServerError;
-use actix_web::{HttpResponse, Responder, post, web};
-use base64::{self, Engine as _};
-use crypto::common::typenum::True;
+use std::result;
+
+use actix_web::{get, post, web, HttpMessage, HttpResponse, Responder};
+use futures_util::future::UnwrapOrElse;
 use serde::{Serialize, Deserialize};
 use rand::RngCore;
-use actix_web::web::Data;
-use actix_web::web::Json;
 use sqlx::PgPool;
 use sqlx::Error;
+use actix_web::HttpRequest;
+use actix_identity::Identity;
+use base64::{engine::general_purpose::URL_SAFE, Engine};
+
+
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginData {
@@ -17,8 +19,8 @@ pub struct LoginData {
     devid: String,
 }
 
-#[post("/api/login")]
-pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl Responder {
+#[post("/login")]
+pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>, request: HttpRequest,) -> impl Responder {
     // Query the database to check if the user exists
     let user_result = sqlx::query(
         "SELECT * FROM users WHERE username = $1 AND password = $2",
@@ -30,63 +32,65 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>) -> impl 
     .await;
 
     match user_result {
-        Ok(user) => {
-            let token = gentoken().await;
-            let time_created = Utc::now();
-            println!("Token: {:?}", token);
-            _ = sqlx::query(
-                "INSERT INTO tokens (username, token, timecreated) VALUES ($1, $2, $3)",
-            )
-            .bind(&data.username)
-            .bind(&token)
-            .bind(time_created.to_rfc3339())
-            .execute(pool.get_ref())
-            .await
-            .map_err(|e| ErrorInternalServerError(e));
-
-            HttpResponse::Ok().json(token)
+        Ok(_user_result) => {
+           let mut random_bytes = [0u8; 32];
+            rand::rng().fill_bytes(&mut random_bytes);
+            let session_token = URL_SAFE.encode(&random_bytes);
+            Identity::login(&request.extensions(),session_token.clone()).unwrap();
+            println!("Provisioned session token: {}", session_token);
+            HttpResponse::Ok().body("Session token provisioned")
         }
         Err(Error::RowNotFound) => {
             println!("Invalid username or password");
             HttpResponse::Unauthorized().body("Invalid username or password")
-       }
+        }
         Err(e) => {
             println!("Internal server error: {}", e);
             HttpResponse::InternalServerError().body(format!("Internal server error: {}", e))
         }
     }
 }
-
-async fn gentoken() -> String {
-// TODO: REMEMBER TO ADD DEVID TO THE TOKEN
-    let mut rando = [0u8; 32];
-    rand::rng().fill_bytes(&mut rando);
-    let token = base64::engine::general_purpose::URL_SAFE.encode(&rando);
-    return token;
+#[derive(Serialize, Deserialize)]
+pub struct TokenData {
+    token: String,
 }
+/*
+#[post("/api/checktoken")]
+pub async fn checktoken(pool: web::Data<PgPool>, data: web::Json<TokenData>) -> impl Responder {
+    let token = &data.token;
+    let token_result = sqlx::query(
+        "SELECT * FROM tokens WHERE token = $1",
+    )
+    .bind(token)
+    .fetch_one(pool.get_ref())
+    .await;
 
-async fn revoketoken(pool: Data<PgPool>, token: &str) -> bool {
-    let res = sqlx::query("SELECT timecreated FROM tokens WHERE token = $1")
-        .bind(token)
-        .fetch_one(pool.get_ref())
-        .await
-        .is_ok();
-    /*match res {
-        Ok(time_created) => {
-            let time_created: String = time_created.get(0);
-            let time_created = Utc::from_utc_datetime(&time_created);
-            let time_now = Utc::now();
-            if time_now.signed_duration_since(time_created).num_minutes() > 90 {
-                return false;
-            } else {
-                return true;
+    match token_result {
+        Ok(record) => {
+            let time_str: String = match record.try_get("timecreated") {
+                Ok(value) => value,
+                Err(e) => {
+                    println!("Error retrieving timecreated: {}", e);
+                    return HttpResponse::InternalServerError().body("Error retrieving timecreated").into();
+                }
+            };
+            let time_created = chrono::DateTime::parse_from_rfc3339(&time_str).unwrap();
+            if time_created < Utc::now() - chrono::Duration::minutes(30) {
+                revoketoken(pool, token).await;
+                return HttpResponse::Unauthorized().body("Token expired");
             }
+            HttpResponse::Ok().body("Token is valid")
         }
-        Err(_) => {
-            return false; 
-    }*/
-    return true;
-}
+        Err(Error::RowNotFound) => {
+            println!("Invalid token");
+            HttpResponse::Unauthorized().body("Invalid token")
+        }
+        Err(e) => {
+            println!("Internal server error: {}", e);
+            HttpResponse::InternalServerError().body(format!("Internal server error: {}", e))
+        }
+    }
+}*/
 
     /*sqlx::query("DELETE FROM tokens WHERE token = $1")
         .bind(token)
