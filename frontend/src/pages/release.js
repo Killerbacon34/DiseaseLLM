@@ -15,9 +15,10 @@ export default function Release() {
                 apiUrl = 'http://localhost:4545/auth/release'; // API for signup page
             }
 
-            const response = await axios.get(apiUrl, {}, {
+            const response = await axios.get(apiUrl, {
                 withCredentials: true,
-            });
+            }
+            );
             if (response.status !== 200) {
                 throw new Error('Failed to fetch data');
             }

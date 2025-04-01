@@ -184,37 +184,34 @@ pub async fn upload_form(
         tokio::spawn(async move {
             let tasks = vec![
                 spawn_task_with_timeout(
-                    "DeepSeekR1",
-                    Duration::from_secs(60), // TODO: change to a more reasonable timeout 
+                    "DeepseekR1",
+                    Duration::from_secs(120), // TODO: change to a more reasonable timeout 
                     queryLLM::queryDeepSeekR1(user_id.clone(), data_value.clone(), pool_clone.clone())
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in DeepSeekR1: {:?}", err);
                         })),
                     redis_pool_clone.clone(),
                     user_id.clone(),
-                )/*
-                spawn_task_with_timeout(
+                ),spawn_task_with_timeout(
                     "Gemini",
-                    Duration::from_secs(10), // 10-second timeout
-                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), redis_pool_clone.clone(), pool_clone.clone()),
+                    Duration::from_secs(120), // TODO: change to a more reasonable timeout
+                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), pool_clone.clone())
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Gemini: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),spawn_task_with_timeout(
+                    "Llama",
+                    Duration::from_secs(120), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), pool_clone.clone())
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Llama: {:?}", err);
+                        })),
                     redis_pool_clone.clone(),
                     user_id.clone(),
                 ),
-                spawn_task_with_timeout(
-                    "Llama",
-                    Duration::from_secs(10), // 10-second timeout
-                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), redis_pool_clone.clone(), pool_clone.clone()),
-                    redis_pool_clone.clone(),
-                    user_id.clone(),
-                ),*/
             ];
-
-            // Wait for all tasks to complete
-            for task in tasks {
-                if let Err(e) = task.await {
-                    println!("Task failed: {:?}", e);
-                }
-            }
         });
         return Ok(HttpResponse::Ok().body("Tasks are running in the background"));
     } else {
@@ -256,14 +253,14 @@ pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnection
         let k : Option<i32> = con.get(format!("{}_ready", id.id().unwrap())).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
         println!("Key: {:?}", k); // Debugging line to see the value of k
         if let Some(k) = k {
-            if k >= 1 {
+            if k >= 3 {
                 println!("Finished");
-                return Ok(HttpResponse::Ok().body("true"));
+                return Ok(HttpResponse::Ok().body("Finished"));
             } else {
-                return Ok(HttpResponse::Accepted().body("false"));
+                return Ok(HttpResponse::Accepted().body("Not finished"));
             }
         } else {
-            return Ok(HttpResponse::Accepted().body("false"));
+            return Ok(HttpResponse::Accepted().body("Not finished"));
         }
     } else {
         Ok(HttpResponse::Unauthorized().body("Unauthorized"))

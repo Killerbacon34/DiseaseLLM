@@ -5,6 +5,7 @@ use actix_identity::Identity;
 use actix_session::Session;
 use r2d2_redis::redis::Commands;
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
 use crate::queryLLM; // Import the queryLLM module
 use base64::{engine::general_purpose::URL_SAFE, Engine};
 use sqlx::PgPool;
@@ -46,14 +47,32 @@ pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::Red
     }
 }
 
-#[get("/checkResults")]
-pub async fn anon_check_results(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> impl Responder {
+#[derive(Serialize, Deserialize, sqlx::FromRow)]
+struct ResultData {
+    deepseek: String,
+    gemini: String,
+    llama: String,
+}
+
+#[get("/results")]
+pub async fn anon_check_results(pool: web::Data<PgPool>, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> impl Responder {
     if let Some(id) = id {
         let mut con = redis_pool.get().map_err(ErrorInternalServerError).expect("Failed to get redis connection");
-        //let result_llama: Option<String> = con.get(format!("anonLlama_{}_data", session_id.clone())).map_err(ErrorInternalServerError)?;
-        //let result_deepseek: Option<String> = con.get(format!("anonDeepSeek_{}_data", session_id.clone())).map_err(ErrorInternalServerError)?;
-        //let result_gemini: Option<String> = con.get(format!("anonGemini_{}_data", session_id.clone())).map_err(ErrorInternalServerError)?;
-        let result: Option<String> = con.get(format!("anonConsensus_{}_data", id.id().unwrap())).ok().clone();
+        let res = sqlx::query_as::<_, ResultData>("SELECT deepseek, gemini, llama FROM results WHERE id = $1")
+            .bind(id.id().unwrap())
+            .fetch_one(pool.get_ref())
+            .await;
+        match res {
+            Err(e) => {
+                eprintln!("Error fetching results: {}", e);
+                return HttpResponse::InternalServerError().body("Internal server error")
+            }
+            Ok(results) => {
+                return HttpResponse::Ok().json(results);
+            }
+        }
+
+        /*let result: Option<String> = con.get(format!("anonConsensus_{}_data", id.id().unwrap())).ok().clone();
         if result.is_some() {
             if let Err(e) = con.del::<_, ()>(format!("anonLlama_{}_data", id.id().unwrap())) {
                 eprintln!("Failed to delete key: {}", e);
@@ -69,11 +88,10 @@ pub async fn anon_check_results(redis_pool: web::Data<r2d2::Pool<r2d2_redis::Red
             }
             return HttpResponse::Ok().body(result.unwrap())
         } else {
-            return HttpResponse::Accepted().body("false")
-        }
-           
+            return HttpResponse::Accepted().body("false");
+        } */
     } else {
-        return HttpResponse::Unauthorized().body("Unauthorized")
+        return HttpResponse::Unauthorized().body("Unauthorized");
     }
 }
 
