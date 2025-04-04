@@ -37,6 +37,13 @@ with open('d.csv', 'r') as file, open('o.csv', 'a', newline='') as outputfile:
                                 "content": "List 2-3 definite symptoms and some situational symptoms for {} , where each listed symptom, no matter the importance, is delineated by a slash. Do not respond with any reasoning, I just want the symptoms. Do not list which symptoms are definite or not, just the symptoms.".format(row[0])
                             }
                         ],
+                        'provider': {
+                            'order': [
+                                "Targon",
+                                'OpenAI',
+                                'Together'
+                            ],
+                        }
                     })
                 )
                 if response.status_code == 200:
