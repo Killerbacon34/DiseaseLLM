@@ -553,9 +553,8 @@ pub async fn queryConsensus(
                         }
                     ]
                 });
-//hi
                 dotenv::dotenv().ok();
-
+//retest
                 let api_url = "https://openrouter.ai/api/v1/chat/completions";
                 let client = Client::new();
                 println!("API KEY: {}", dotenv::var("LLM_KEY").unwrap());
