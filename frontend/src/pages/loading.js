@@ -14,7 +14,7 @@ const Loading = () => {
                 console.log(response); 
                 if (response.status === 200) {
                     console.log("triggered")
-                    Router.push("/diagnosis")
+                    Router.push("/result")
                 }
             } catch (error) {
                 console.error('Error checking API status:', error);

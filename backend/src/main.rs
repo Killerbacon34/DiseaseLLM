@@ -84,6 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::anon_release)
                 .service(anonymous::checkconn)
                 .service(anonymous::check_session)
+                .service(anonymous::anon_all_output)
             )
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?

@@ -24,7 +24,6 @@ pub async fn login(pool: web::Data<PgPool>, data: web::Json<LoginData>, request:
     // Query the database to check if the user exists
     let user_result = sqlx::query(
         "SELECT * FROM users WHERE username = $1 AND password = $2",
-       
     )
     .bind(&data.username)
     .bind(&data.pass)

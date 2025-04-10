@@ -5,11 +5,11 @@ use r2d2_redis::redis::Commands;
 use sanitize_filename::sanitize;
 use serde::{Serialize, Deserialize};
 use std::fs::{self, File};
-use futures_util::{stream::StreamExt, FutureExt};
+use futures_util::{stream::StreamExt, FutureExt, future};
 use std::io::Write;
 use sqlx::PgPool;
 use regex::Regex;
-use tokio::time::{timeout, Duration};
+use tokio::{sync::futures, time::{timeout, Duration}};
 use crate::queryLLM; 
 
 #[post("/uploadFile")]
@@ -210,9 +210,19 @@ pub async fn upload_form(
                         })),
                     redis_pool_clone.clone(),
                     user_id.clone(),
+                ), spawn_task_with_timeout(
+                    "Consensus",
+                    Duration::from_secs(240), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryConsensus(user_id.clone(), pool_clone.clone(), redis_pool_clone.clone())
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Consensus: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
                 ),
             ];
         });
+        
         return Ok(HttpResponse::Ok().body("Tasks are running in the background"));
     } else {
         return Ok(HttpResponse::Unauthorized().body("Unauthorized"));
@@ -220,6 +230,28 @@ pub async fn upload_form(
 }
 
 /// Helper function to spawn a task with a timeout
+
+#[get("/status")]
+pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> Result<HttpResponse, actix_web::Error> {
+    if let Some(id) = id {
+        let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
+        let k : Option<i32> = con.get(format!("{}_ready", id.id().unwrap())).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
+        println!("Key: {:?}", k); // Debugging line to see the value of k
+        if let Some(k) = k {
+            if k >= 4 {
+                println!("Finished");
+                return Ok(HttpResponse::Ok().body("Finished"));
+            } else {
+                return Ok(HttpResponse::Accepted().body("Not finished"));
+            }
+        } else {
+            return Ok(HttpResponse::Accepted().body("Not finished"));
+        }
+    } else {
+        Ok(HttpResponse::Unauthorized().body("Unauthorized"))
+    }
+}
+
 fn spawn_task_with_timeout<F>(
     task_name: &'static str,
     duration: Duration,
@@ -244,25 +276,4 @@ where
             }
         }
     })
-}
-
-#[get("/status")]
-pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> Result<HttpResponse, actix_web::Error> {
-    if let Some(id) = id {
-        let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
-        let k : Option<i32> = con.get(format!("{}_ready", id.id().unwrap())).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
-        println!("Key: {:?}", k); // Debugging line to see the value of k
-        if let Some(k) = k {
-            if k >= 3 {
-                println!("Finished");
-                return Ok(HttpResponse::Ok().body("Finished"));
-            } else {
-                return Ok(HttpResponse::Accepted().body("Not finished"));
-            }
-        } else {
-            return Ok(HttpResponse::Accepted().body("Not finished"));
-        }
-    } else {
-        Ok(HttpResponse::Unauthorized().body("Unauthorized"))
-    }
 }

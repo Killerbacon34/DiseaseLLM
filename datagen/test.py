@@ -8,7 +8,7 @@ response = requests.post(
     "Content-Type": "application/json",
   },
   data=json.dumps({
-    "model": "meta-llama/llama-3.3-70b-instruct:free",
+    "model": "microsoft/phi-3-medium-128k-instruct",
     "messages": [
       {
         "role": "user",

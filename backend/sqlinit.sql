@@ -56,5 +56,6 @@ CREATE TABLE RESULTS(
     ID TEXT PRIMARY KEY,
     Deepseek TEXT,
     Gemini TEXT,
-    Llama TEXT
+    Llama TEXT,
+    Consensus TEXT,
 );
