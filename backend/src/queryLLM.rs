@@ -563,7 +563,7 @@ pub async fn queryConsensus(
                         }
                     ]
                 });
-
+//hi
                 dotenv::dotenv().ok();
 
                 let api_url = "https://openrouter.ai/api/v1/chat/completions";
