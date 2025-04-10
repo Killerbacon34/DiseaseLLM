@@ -120,7 +120,7 @@ pub async fn queryDeepSeekR1(
     if let Some(drugs) = data.get("drug_use").and_then(|drugs| drugs.as_str()) {
         prompt.push_str(&format!("Drug use: {}. ", drugs));
     }
-    prompt.push_str("What advice can you give me about my health?");
+    prompt.push_str("Provide a diagnosis and treatment plan for my health condition based on the provided health information.");
 
 
     let payload = json!({
@@ -129,8 +129,9 @@ pub async fn queryDeepSeekR1(
         "messages": [
             {
                 "role": "user",
-                "content": "You are a knowledgeable medical assistant. Provide helpful, 
-                evidence-based advice while reminding users to consult with their doctor for professional medical advice."
+                "content": "You are a knowledgeable doctor. Provide a helpful, 
+                evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
+                Summarize your information in a few sentences."
             }, 
             {
                 "role": "user",
@@ -290,7 +291,7 @@ pub async fn queryGemini(
     if let Some(drugs) = data.get("drug_use").and_then(|drugs| drugs.as_str()) {
         prompt.push_str(&format!("Drug use: {}. ", drugs));
     }
-    prompt.push_str("What advice can you give me about my health?");
+    prompt.push_str("Provide a diagnosis and treatment plan for my health condition based on the provided health information.");
 
 
     let payload = json!({
@@ -299,8 +300,9 @@ pub async fn queryGemini(
         "messages": [
             {
                 "role": "user",
-                "content": "You are a knowledgeable medical assistant. Provide helpful, 
-                evidence-based advice while reminding users to consult with their doctor for professional medical advice."
+                "content": "You are a knowledgeable doctor. Provide a helpful, 
+                evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
+                Summarize your information in a few sentences."
             }, 
             {
                 "role": "user",
@@ -348,14 +350,16 @@ pub async fn queryLlama(
         data.get("gender").and_then(|gender| gender.as_str()).unwrap_or("unknown"),
         data.get("race").and_then(|race| race.as_str()).unwrap_or("unknown")
     ));
-    prompt.push_str("What advice can you give me about my health?");
+    prompt.push_str("Provide a diagnosis and treatment plan for my health condition based on the provided health information.");
 
     let payload = json!({
         "model": "meta-llama/llama-3.3-70b-instruct:free",
         "messages": [
             {
                 "role": "user",
-                "content": "You are a knowledgeable medical assistant. Provide helpful, evidence-based advice while reminding users to consult with their doctor for professional medical advice."
+                "content": "You are a knowledgeable doctor. Provide a helpful, 
+                evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
+                Summarize your information in a few sentences."
             },
             {
                 "role": "user",
