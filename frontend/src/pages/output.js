@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css"; // Import KaTeX styles
 
 const JsonTable = ({ data }) => {
   return (
@@ -7,15 +11,21 @@ const JsonTable = ({ data }) => {
       <table className="table-auto w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-2">Key</th>
-            <th className="border border-gray-300 px-4 py-2">Value</th>
+            <th className="border border-gray-300 px-4 py-2">LLM</th>
+            <th className="border border-gray-300 px-4 py-2">Response</th>
           </tr>
         </thead>
         <tbody>
           {Object.entries(data).map(([key, value]) => (
             <tr key={key} className="hover:bg-gray-50">
               <td className="border border-gray-300 px-4 py-2 font-semibold">{key}</td>
-              <td className="border border-gray-300 px-4 py-2 text-left">{value}</td>
+              <td className="border border-gray-300 px-4 py-2 text-left">
+                <ReactMarkdown
+                  children={value}
+                  remarkPlugins={[remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -30,7 +40,7 @@ const diagnosis = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get("http://localhost:4545/anon/results", {
+    axios.get("http://localhost:4545/anon/alloutput", {
         withCredentials: true,
         headers: {
             "Accept": "application/json",
@@ -57,4 +67,4 @@ const diagnosis = () => {
   );
 };
 
-export default diagnosis; 
+export default diagnosis;
