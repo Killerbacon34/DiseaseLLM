@@ -537,7 +537,7 @@ pub async fn queryConsensus(
                         res.deepseek, res.gemini, res.llama
                     );
                 let payload = json!({
-                    "model": "openrouter/quasar-alpha",
+                    "model": "deepseek/deepseek-r1:free",
                     "messages": [
                         {
                             "role": "user",
@@ -563,9 +563,8 @@ pub async fn queryConsensus(
                         }
                     ]
                 });
-//hi
                 dotenv::dotenv().ok();
-
+//retest
                 let api_url = "https://openrouter.ai/api/v1/chat/completions";
                 let client = Client::new();
                 println!("API KEY: {}", dotenv::var("LLM_KEY").unwrap());
