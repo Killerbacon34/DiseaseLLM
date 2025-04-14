@@ -57,5 +57,5 @@ CREATE TABLE RESULTS(
     Deepseek TEXT,
     Gemini TEXT,
     Llama TEXT,
-    Consensus TEXT,
+    Consensus TEXT
 );

@@ -527,7 +527,7 @@ pub async fn queryConsensus(
                         res.deepseek, res.gemini, res.llama
                     );
                 let payload = json!({
-                    "model": "openrouter/quasar-alpha",
+                    "model": "deepseek/deepseek-r1:free",
                     "messages": [
                         {
                             "role": "user",
