@@ -3,6 +3,7 @@ This github contains the code used for the Disease Large Language Model capstone
 * Deepseek R1
 * Llama
 * Gemini
+
 The goal for the project was to provide a user-friendly and intuitive interface for the public to obtain accurate medical diagnoses without the need to create an appointment with a doctor.
 # Dependencies:
 - Latest version of Rust is installed through rustup and in the system path (https://www.rust-lang.org/tools/install).
