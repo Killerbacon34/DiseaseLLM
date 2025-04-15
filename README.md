@@ -8,7 +8,7 @@ The goal for the project was to provide a user-friendly and intuitive interface 
 # Dependencies:
 - Latest version of Rust is installed through rustup and in the system path (https://www.rust-lang.org/tools/install). Be sure to do this with Admin privileges.
 - Latest version of nodejs and npm is installed (https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-- Docker Desktop is downloaded and running (https://docs.docker.co/engine/install/).
+- Docker Desktop is downloaded and running (https://www.docker.com/get-started/).
 - Install Github on machine.
 ## Run Locally
 Listed below are the steps for pulling this project and running it locally on your machine (assuming that your computer is a Windows Computer and you are doing these commands in Powershell):
