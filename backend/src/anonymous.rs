@@ -77,7 +77,7 @@ pub async fn anon_check_results(
                 return HttpResponse::InternalServerError().body("Internal server error");
             }
             Ok(res) => {
-                let start_delimiter = "xxx";
+                /*let start_delimiter = "xxx";
                 let end_delimiter = "xxx";
                 let input = res.clone();
 
@@ -104,13 +104,14 @@ pub async fn anon_check_results(
                     }
                 } else {
                     (None, Some(input))
-                };
-                println!("remaining: {:?}", remaining);
+                };*/
+                //remaining = res;
+                println!("remaining: {:?}", res);
 
-                if let Some(sandwiched) = sandwiched {
-                    if let Some(remaining) = remaining {
+                //if let Some(sandwiched) = sandwiched {
+                    if !res.is_empty() {
                         // Split the remaining response by '/'
-                        let parts: Vec<&str> = remaining.split('/').map(|s| s.trim()).collect();
+                        let parts: Vec<&str> = res.split('#').map(|s| s.trim()).collect();
 
                         // Extract the three parts, handling cases where there are fewer than three parts
                         let part1 = parts.get(0).unwrap_or(&"").to_string();
@@ -118,7 +119,6 @@ pub async fn anon_check_results(
                         let part3 = parts.get(2).unwrap_or(&"").to_string();
 
                         return HttpResponse::Ok().json(serde_json::json!({
-                            "Reasoning": sandwiched,
                             "Diagnosis": part1,
                             "Treatment Plan": part2,
                             "Drug Usage Plan": part3
@@ -126,9 +126,9 @@ pub async fn anon_check_results(
                     } else {
                         return HttpResponse::Ok().body("No remaining content found");
                     }
-                } else {
+                /*} else {
                     return HttpResponse::Ok().body("No sandwiched content found");
-                }
+                }*/
             }
         }
     } else {

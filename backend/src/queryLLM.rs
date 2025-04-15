@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use actix_multipart::form::json::Json;
-use actix_web::{error::ErrorInternalServerError, web, HttpResponse, Responder};
+use actix_web::{error::ErrorInternalServerError, web::{self, Payload}, HttpResponse, Responder};
 use chrono::Duration;
+use pdf_extract::content;
 use r2d2_redis::redis::Commands;
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
@@ -120,7 +121,7 @@ pub async fn queryDeepSeekR1(
     while flag {
         let api_url = "https://openrouter.ai/api/v1/chat/completions";
         let client = Client::new();
-        println!("API KEY: {}", dotenv::var("LLM_KEY").unwrap());
+        println!("QUERYING Deepseek_{}", id);
 
         let response = client
             .post(api_url)
@@ -174,8 +175,8 @@ pub async fn queryGemini(
     data: Value,
     db_pool: web::Data<PgPool>
 ) -> Result<(), actix_web::Error> {
+    sleep(std::time::Duration::from_secs(5)).await;
     println!("QUERYING:::: {}", id);
-
     let mut prompt = String::new();
 
     prompt.push_str(&format!("I am a {} year old {} {}. ", 
@@ -258,7 +259,7 @@ pub async fn queryGemini(
     prompt.push_str("Provide a diagnosis and treatment plan for my health condition based on the provided health information.");
 
 
-    let payload = json!({
+    /*let payload = json!({
         "model": "google/gemini-2.5-pro-exp-03-25:free",
         "messages": [
             {
@@ -266,12 +267,28 @@ pub async fn queryGemini(
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
                 Summarize your information in a few sentences."
-            }, 
+            },
+            { 
                 "content": "You are a knowledgeable medical assistant. Provide helpful, evidence-based advice while reminding users to consult with their doctor for professional medical advice."
             },
             {
                 "role": "user",
                 "content": prompt
+            }
+        ]
+    });*/
+
+    let payload = json!({
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "text": "You are a knowledgeable doctor. Provide a helpful, evidence-based diagnosis and treatment plan for my health condition based on the provided health information. Summarize your information in a few sentences."
+                    },
+                    {
+                        "text": prompt
+                    }
+                ]
             }
         ]
     });
@@ -282,8 +299,8 @@ pub async fn queryGemini(
     while flag {
         let api_url = "https://openrouter.ai/api/v1/chat/completions";
         let client = Client::new();
-        println!("API KEY: {}", dotenv::var("LLM_KEY").unwrap());
-
+        println!("TESTING GEMINI_{}", id);
+        /* OPENROUTER QUERY FOR GEMINI 
         let response = client
             .post(api_url)
             .header("Accept", "application/json")
@@ -293,7 +310,16 @@ pub async fn queryGemini(
             .send()
             .await
             .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
-
+        */
+        let response = client
+            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAXE3tCFtNrQeUrYhhNT5QNC9YINy6ifx4"))
+            .header("Accept", "application/json")
+            .header("Content-Type", "application/json")
+            //.header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
         if !response.status().is_success() {
             let status = response.status();
             let error_message = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
@@ -308,12 +334,21 @@ pub async fn queryGemini(
 
         println!("API Response: {:#?}", output);
 
-        if let Some(content) = output
+        /*if let Some(content) = output
             .get("choices")
             .and_then(|choices| choices.get(0))
             .and_then(|choice| choice.get("message"))
             .and_then(|message| message.get("content"))
             .and_then(|content| content.as_str())
+        {*/
+        if let Some(content) = output
+            .get("candidates")
+            .and_then(|candidates| candidates.get(0))
+            .and_then(|candidate| candidate.get("content"))
+            .and_then(|content| content.get("parts"))
+            .and_then(|parts| parts.get(0))
+            .and_then(|part| part.get("text"))
+            .and_then(|text| text.as_str())
         {
             println!("Content: {}", content);
             sqlx::query("UPDATE results SET gemini = $1 WHERE id = $2")
@@ -336,6 +371,7 @@ pub async fn queryLlama(
     data: Value,
     db_pool: web::Data<PgPool>
 ) -> Result<(), actix_web::Error> {
+    sleep(std::time::Duration::from_secs(10)).await;
     println!("QUERYING:::: {}", id);
 
     let mut prompt = String::new();
@@ -447,7 +483,7 @@ pub async fn queryLlama(
     while (flag) {
         let api_url = "https://openrouter.ai/api/v1/chat/completions";
         let client = Client::new();
-        println!("API KEY: {}", dotenv::var("LLM_KEY").unwrap());
+        println!("RUNNING FOR LLAMA_{}", id);
 
         let response = client
             .post(api_url)
@@ -522,6 +558,8 @@ pub async fn queryConsensus(
             println!("Waiting for models to be ready for ID: {}", id);
         }
     }
+    flag = true;
+    while (flag) {
     let res = sqlx::query_as::<_, ResultData>("SELECT deepseek, gemini, llama FROM results WHERE id = $1")
                 .bind(id.clone())
                 .fetch_one(db_pool.get_ref())
@@ -549,13 +587,14 @@ pub async fn queryConsensus(
                             and your confidence level based on the provided information 
                             2. A treatment plan 3. A drug usage plan (including dosage,
                             frequency, and duration), A diagnosis with its corresponding
-                            brief treatment plan and drug usage plan where each is split by a \'/\'. 
-                            (e.g., \"Influenza (80 percent confidence)/ Rest and hydration/ Oseltamivir 75 mg twice daily for 5 days\").
-                            Return your results as a single line for each possible diagnosis in this format:
-                            Diagnosed Disease Name (X percent confidence)/ Treatment Plan / Drug Usage Plan.
+                            brief treatment plan and drug usage plan where each is split by a \'#\'. 
+                            (e.g., \"Influenza (80 percent confidence) # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
+                            Return your results as a single line for the most likely possible diagnosis in this format:
+                            Diagnosed Disease Name (X percent confidence) # Treatment Plan # Drug Usage Plan.
                             Do not repeat symptoms as a diagnosis. Use established disease names 
-                            (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. Just summarize them together and add a confidence score for all of them. 
-                            Determine a diagnosis concensus from the three different diagnoses and explain your reasoning in a separate section, sandwiched within the delimiters xxx"
+                            (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
+                            Just summarize them together and add a confidence score for all of them. 
+                            Determine a diagnosis concensus from the three different diagnoses."
                         },
                         {
                             "role": "user",
@@ -601,17 +640,23 @@ pub async fn queryConsensus(
                     .and_then(|content| content.as_str())
                 {
                     println!("Content: {}", content);
-
+                    if !content.is_empty() {
+                    flag = false; 
                     sqlx::query("UPDATE results SET consensus = $1 WHERE id = $2")
                         .bind(content)
                         .bind(&id)
                         .execute(db_pool.get_ref())
                         .await
                         .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+                    }
+                    else {
+                        eprintln!("Error: Missing or invalid content in API response");
+                    }
                 } else {
                     eprintln!("Error: Missing or invalid content in API response");
                     return Err(actix_web::error::ErrorInternalServerError("Invalid API response"));
                 }
+            }
             }
         }
     Ok(())

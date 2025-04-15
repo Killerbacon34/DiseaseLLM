@@ -30,7 +30,7 @@ with open('d.csv', 'r') as file, open('o.csv', 'a', newline='') as outputfile:
                         #"X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
                     },
                     data=json.dumps({
-                        "model": "deepseek/deepseek-r1:free",
+                        "model": "google/gemini-2.5-pro-exp-03-25:free",
                         "messages": [
                             {
                                 "role": "user",

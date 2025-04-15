@@ -8,7 +8,7 @@ response = requests.post(
     "Content-Type": "application/json",
   },
   data=json.dumps({
-    "model": "microsoft/phi-3-medium-128k-instruct",
+    "model": "google/gemini-2.5-pro-exp-03-25:free",
     "messages": [
       {
         "role": "user",

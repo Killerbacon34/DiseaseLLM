@@ -194,7 +194,7 @@ pub async fn upload_form(
                     user_id.clone(),
                 ),spawn_task_with_timeout(
                     "Gemini",
-                    Duration::from_secs(120), // TODO: change to a more reasonable timeout
+                    Duration::from_secs(125), // TODO: change to a more reasonable timeout
                     queryLLM::queryGemini(user_id.clone(), data_value.clone(), pool_clone.clone())
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in Gemini: {:?}", err);
@@ -203,7 +203,7 @@ pub async fn upload_form(
                     user_id.clone(),
                 ),spawn_task_with_timeout(
                     "Llama",
-                    Duration::from_secs(120), // TODO: change to a more reasonable timeout 
+                    Duration::from_secs(130), // TODO: change to a more reasonable timeout 
                     queryLLM::queryLlama(user_id.clone(), data_value.clone(), pool_clone.clone())
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in Llama: {:?}", err);
