@@ -18,6 +18,10 @@ Clone the project
 ```bash
   git clone https://github.com/Killerbacon34/DiseaseLLM.git
 ```
+Then navigate into the project directory
+```bash
+  cd DiseaseLLM
+```
 ## Step 2: Initialize Database
 Install Docker Desktop using the link below
 ```
@@ -31,7 +35,16 @@ Pull redis image
 ```bash
   docker pull redis
 ```
-Then run the following commands to create Docker containers for each
+Open the Docker Desktop Application and go to images. Then press the run button on the postgres image
+![Screenshot 2025-04-15 144046](https://github.com/user-attachments/assets/3545607a-3dcb-4e74-b794-831ff7419a64)
+
+Enter in the options in the image below and click run
+![Screenshot 2025-04-15 144128](https://github.com/user-attachments/assets/700c7d8e-b0d7-4220-9add-7916954e9669)
+
+Go to containers and select the start button on the one called DLLM
+
+
+Then run the following commands to initialize the project database
 ```bash
   docker cp backend/sqlinit.sql DLLM:sqlinit.sql 
 ```
@@ -39,8 +52,9 @@ Then run the following commands to create Docker containers for each
   docker exec -it DLLM psql -U user -f sqlinit.sql
 ```
 ```bash
-  docker run --name redis-c -d redis -p 6379
+  docker run --name my-redis -p 6379:6379 -d redis
 ```
+Then, go back to containers and make sure the container for redis is currently running
 Make sure to run the DLLM container within Docker Desktop, BOTH containers need to be running on the specfied ports for the backend to start.
 
 ## Step 3: Run Backend
