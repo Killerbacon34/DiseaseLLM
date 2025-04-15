@@ -70,4 +70,4 @@ Open a browser of your choice and enter localhost:3000/ to navigate to the websi
 
 ---
 ## If there are any issues with the code, please teams message Bryant Huang or email Bryant_huang1@baylor.edu or Alex_DeVries1@baylor.edu. We will respond to you as soon as we can.
-## IF THERE ARE ISSUES WITH THE LLM KEY, PLEASE LET US KNOW. WE ARE USING AN OPENROUTER.AI API KEY AND IT HAS GIVEN ISSUES TO US IN THE PAST, BRYANT USUALLY HAS TO REENABLE THE KEY AS IT SOMETIMES DISABLES ITSELF AFTER A SHORT AMOUNT OF TIME.
+## If there are ANY issues with the LLM key, please let us know. We are using an Openrouter.ai API KEY and API and it has given issues to us in the past. Bryant usually has to reenable the key, so please reach out.
