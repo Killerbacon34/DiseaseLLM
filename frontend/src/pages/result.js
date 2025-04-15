@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+ import ReactMarkdown from "react-markdown";
+ import rehypeKatex from "rehype-katex";
+ import remarkMath from "remark-math";
+ import { useRouter } from 'next/navigation';
 
 const customStyles = `
   body {
@@ -56,9 +61,9 @@ const customStyles = `
 `;
 
 const mockData = {
-  "Diagnosis": "Severe Acute Malnutrition (85% confidence)",
-  "Drug Usage Plan": "Nutritional supplements and electrolyte replacement; continue Albuterol as prescribed if respiratory symptoms persist.",
-  "Treatment Plan": "Immediate hospitalization for nutritional rehabilitation, electrolyte monitoring, and evaluation of underlying causes (e.g., malabsorption, chronic infection)"
+  "Diagnosis": "Error: Not Found, Input Data Again.",
+  "Drug Usage Plan": "Error: Not Found, Input Data Again.",
+  "Treatment Plan": "Error: Not Found, Input Data Again."
 };
 
 const InfoCards = ({ data }) => {
@@ -78,7 +83,14 @@ const InfoCards = ({ data }) => {
               {key}
             </div>
             <div className="card-body">
-              <p className="card-text">{value}</p>
+              <div className="card-text">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {String(value)}
+                  </ReactMarkdown>
+                </div>
             </div>
           </motion.div>
         ))}
@@ -95,14 +107,21 @@ const Diagnosis = () => {
   useEffect(() => {
     // Simulate data loading with a timeout
     const timer = setTimeout(() => {
-      try {
-        // In a real app, you would fetch data here
-        setJsonData(mockData);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load diagnosis data");
-        setLoading(false);
-      }
+    axios.get("http://localhost:4545/anon/results", {
+         withCredentials: true,
+         headers: {
+             "Accept": "application/json",
+         },
+     }) // Replace with actual API URL
+       .then((response) => {
+         setJsonData(response.data);
+         setLoading(false);
+       })
+       .catch((err) => {
+         setError(err.message);
+         setLoading(false);
+       });
+      
     }, 1000);
     
     return () => clearTimeout(timer);
