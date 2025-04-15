@@ -33,7 +33,7 @@ Pull redis image
 ```
 Then run the following commands to create Docker containers for each
 ```bash
-  docker cp sqlinit.sql DLLM:sqlinit.sql 
+  docker cp backend/sqlinit.sql DLLM:sqlinit.sql 
 ```
 ```bash
   docker exec -it DLLM psql -U user -f sqlinit.sql
