@@ -6,7 +6,7 @@ This github contains the code used for the Disease Large Language Model capstone
 
 The goal for the project was to provide a user-friendly and intuitive interface for the public to obtain accurate medical diagnoses without the need to create an appointment with a doctor.
 # Dependencies:
-- Latest version of Rust is installed through rustup and in the system path (https://www.rust-lang.org/tools/install).
+- Latest version of Rust is installed through rustup and in the system path (https://www.rust-lang.org/tools/install). Be sure to do this with Admin privileges.
 - Latest version of nodejs and npm is installed (https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 - Docker Desktop is downloaded and running (https://docs.docker.co/engine/install/).
 - Install Github on machine.
