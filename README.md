@@ -49,14 +49,6 @@ Then run the following commands to initialize the project database
   docker cp backend/sqlinit.sql DLLM:sqlinit.sql 
 ```
 ```bash
-  docker run --name DLLM  \
-  -e POSTGRES_USER=user \
-  -e POSTGRES_PASSWORD=cybears \
-  -e POSTGRES_DB=diseasellm \
-  -p 5432:5432 \
-  -d postgres
-```
-```bash
   docker exec -it DLLM psql -U user -f sqlinit.sql
 ```
 ```bash
