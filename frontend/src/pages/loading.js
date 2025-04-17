@@ -6,6 +6,7 @@ const Loading = () => {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(0);
+
   useEffect(() => {
     const checkApiStatus = async () => {
       try {
@@ -17,10 +18,9 @@ const Loading = () => {
           console.log("API ready, redirecting...");
           setProgress(100);
           router.push("/result");
-        }
-        else {
+        } else {
           console.log(response.data);
-          setLoading(parseInt(response.data,10));
+          setLoading(parseInt(response.data, 10));
         }
       } catch (error) {
         console.error('Error checking API status:', error);
@@ -30,11 +30,12 @@ const Loading = () => {
     const interval = setInterval(() => {
       checkApiStatus();
 
-      setProgress(25 * loading);
+      // Use a functional update to ensure the latest value of `loading` is used
+      setProgress((prevProgress) => Math.min((25 * loading) + 10, 100));
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, loading]); // Add `loading` to the dependency array
 
   return (
     <div className="container text-center mt-5">

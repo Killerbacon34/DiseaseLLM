@@ -588,12 +588,12 @@ pub async fn queryConsensus(
                             2. A treatment plan 3. A drug usage plan (including dosage,
                             frequency, and duration), A diagnosis with its corresponding
                             brief treatment plan and drug usage plan where each is split by a \'#\'. 
-                            (e.g., \"Influenza (80 percent confidence) # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
+                            (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
-                            Diagnosed Disease Name (X percent confidence) # Treatment Plan # Drug Usage Plan.
-                            Do not repeat symptoms as a diagnosis. Use established disease names 
+                            Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
+                            Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
-                            Just summarize them together and add a confidence score for all of them. 
+                            Just summarize them together. 
                             Determine a diagnosis concensus from the three different diagnoses."
                         },
                         {
