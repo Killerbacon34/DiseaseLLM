@@ -242,7 +242,7 @@ pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnection
                 println!("Finished");
                 return Ok(HttpResponse::Ok().body("Finished"));
             } else {
-                return Ok(HttpResponse::Accepted().body("Not finished"));
+                return Ok(HttpResponse::Accepted().body(format!("{}", k)));
             }
         } else {
             return Ok(HttpResponse::Accepted().body("Not finished"));

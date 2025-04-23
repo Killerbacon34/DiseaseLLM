@@ -595,7 +595,7 @@ pub async fn queryConsensus(
                             (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
                             Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
-                            Do not repeat symptoms as a diagnosis. Use established disease names 
+                            Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
                             Just summarize them together. 
                             Determine a diagnosis concensus from the three different diagnoses."
