@@ -615,7 +615,6 @@ export default function Upload() {
                     type="submit" 
                     form="medicalForm" 
                     className="btn btn-success"
-                    disabled={activeSection === 'history'}
                   >
                     Submit Form
                   </button>

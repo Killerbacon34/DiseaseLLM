@@ -69,8 +69,8 @@ function MyNavbar() {
         <Offcanvas.Body>
           <Nav>
               <Nav.Link href="/">Home</Nav.Link>
-              {!user && <Nav.Link href="/signup">Sign Up</Nav.Link>}
-              {!user && <Nav.Link href="/login">Login</Nav.Link>}
+              {/* {!user && <Nav.Link href="/signup">Sign Up</Nav.Link>}
+              {!user && <Nav.Link href="/login">Login</Nav.Link>} */}
               {/* <Nav.Link href="/upload">Document Upload</Nav.Link> */}
               <Nav.Link href="/release">Enter Information</Nav.Link>
               <Nav.Link href="/result">View Diagnosis</Nav.Link>
