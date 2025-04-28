@@ -90,10 +90,7 @@ export default function Home() {
       <section className="py-5 bg-dark text-white">
         <Container className="text-center">
           <h2 className="mb-4">Ready to enhance your medical aid?</h2>
-          <p className="lead mb-4">Create an account here and be able to see your previous diagnoses</p>
-          <a href="/signup" className="btn btn-light btn-lg px-4">
-            Sign Up Now
-          </a>
+          <p className="lead mb-4">Our product is ready for you to use anywhere, anytime!</p>
         </Container>
       </section>
     </div>

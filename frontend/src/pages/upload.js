@@ -124,20 +124,20 @@ export default function Upload() {
     e.preventDefault();
     try {
       const formData = {
-        height: parseInt(e.target.height.value),
-        weight: parseInt(e.target.weight.value),
-        age: parseInt(e.target.age.value),
+        height: e.target.height.value ? parseInt(e.target.height.value) : 0,
+        weight: e.target.weight.value ? parseInt(e.target.weight.value) : 0,
+        age: e.target.age.value ? parseInt(e.target.age.value) : 0,
         gender: selectedGender === 'Other' ? genderOther : selectedGender,
         race: selectedRace === 'Other' ? raceOther : selectedRace,
         symptoms: selectedSymptoms.map(s => s.value),
-        bloodpressure: parseInt(e.target.bloodpressure.value),
-        heartrate: parseInt(e.target.heartrate.value),
-        temperature: parseFloat(e.target.temperature.value),
+        bloodpressure: e.target.bloodpressure.value ? parseInt(e.target.bloodpressure.value) : 0,
+        heartrate: e.target.heartrate.value ? parseInt(e.target.heartrate.value) : 0,
+        temperature: e.target.temperature.value ? parseFloat(e.target.temperature.value) : 0,
         medications: selectedMedications.map(m => m.value),
         allergies: selectedAllergies.map(a => a.value),
-        alcohol: e.target.alcoholuse.value,
-        smoking: e.target.smoking.value,
-        druguse: e.target.druguse.value,
+        alcohol: e.target.alcoholuse.value || "0",
+        smoking: e.target.smoking.value || "0",
+        druguse: e.target.druguse.value || "0",
       };
       const response = await axios.post('http://localhost:4545/api/uploadForm', formData, {
         headers: {
@@ -170,7 +170,6 @@ export default function Upload() {
     <div className="container-fluid py-4" style={{ backgroundColor: '#000' }}>
       <div className="row justify-content-center">
         <div className="col-lg-10">
-          {/* Persistent File Upload Section */}
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-light">
               <h3 className="h5 mb-0">Upload Medical File</h3>
@@ -202,14 +201,12 @@ export default function Upload() {
             </div>
           </div>
 
-          {/* Main Form Card */}
           <div className="card shadow-sm">
             <div className="card-header bg-primary text-white">
               <h1 className="h4 mb-0 text-center">Patient Medical Information Form</h1>
             </div>
             
             <div className="card-body">
-              {/* Navigation Tabs */}
               <ul className="nav nav-tabs mb-4">
                 <li className="nav-item">
                   <button 
@@ -245,8 +242,7 @@ export default function Upload() {
                 </li>
               </ul>
 
-              <form onSubmit={handleManual}>
-                {/* Personal Information Section */}
+              <form id="medicalForm" onSubmit={handleManual}>
                 <div className={`section ${activeSection === 'personal' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Personal Information</h3>
@@ -261,7 +257,6 @@ export default function Upload() {
                           className="form-control"
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
-                          required
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -273,7 +268,6 @@ export default function Upload() {
                           className="form-control"
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
-                          required
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -285,7 +279,6 @@ export default function Upload() {
                           className="form-control"
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
-                          required
                         />
                       </div>
                     </div>
@@ -300,7 +293,6 @@ export default function Upload() {
                             name="gender" 
                             id="genderMale" 
                             value="Male" 
-                            required 
                             checked={selectedGender === 'Male'}
                             onChange={handleGenderChange}
                           />
@@ -351,7 +343,6 @@ export default function Upload() {
                             name="race" 
                             id="raceWhite" 
                             value="White" 
-                            required 
                             checked={selectedRace === 'White'}
                             onChange={handleRaceChange}
                           />
@@ -420,7 +411,6 @@ export default function Upload() {
                   </div>
                 </div>
 
-                {/* Symptoms Section */}
                 <div className={`section ${activeSection === 'symptoms' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Symptoms</h3>
@@ -441,7 +431,7 @@ export default function Upload() {
                   </div>
                 </div>
 
-                {/* Biometric Information Section */}
+  
                 <div className={`section ${activeSection === 'biometrics' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Biometric Information</h3>
@@ -453,7 +443,6 @@ export default function Upload() {
                           id="bloodpressure" 
                           name="bloodpressure" 
                           className="form-control" 
-                          required 
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -463,7 +452,6 @@ export default function Upload() {
                           id="heartrate" 
                           name="heartrate" 
                           className="form-control" 
-                          required 
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -474,14 +462,12 @@ export default function Upload() {
                           name="temperature" 
                           className="form-control" 
                           step="0.1" 
-                          required 
                         />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Medical History Section */}
                 <div className={`section ${activeSection === 'history' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Medical History</h3>
@@ -520,7 +506,7 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Alcohol Use:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholNever" value="Never" required />
+                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholNever" value="Never" />
                           <label className="form-check-label" htmlFor="alcoholNever">Never</label>
                         </div>
                         <div className="form-check">
@@ -544,7 +530,7 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Smoking:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingNever" value="Never" required />
+                          <input className="form-check-input" type="radio" name="smoking" id="smokingNever" value="Never" />
                           <label className="form-check-label" htmlFor="smokingNever">Never</label>
                         </div>
                         <div className="form-check">
@@ -568,7 +554,7 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Drug Use:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseNever" value="Never" required />
+                          <input className="form-check-input" type="radio" name="druguse" id="druguseNever" value="Never" />
                           <label className="form-check-label" htmlFor="druguseNever">Never</label>
                         </div>
                         <div className="form-check">
@@ -591,42 +577,49 @@ export default function Upload() {
                     </div>
                   </div>
                 </div>
+              </form>
 
-                {/* Form Navigation and Submit */}
-                <div className="d-flex justify-content-between mt-4">
+              <div className="d-flex justify-content-between mt-4">
+                <button 
+                  type="button" 
+                  className="btn btn-outline-primary"
+                  onClick={() => {
+                    if (activeSection === 'personal') return;
+                    if (activeSection === 'symptoms') setActiveSection('personal');
+                    if (activeSection === 'biometrics') setActiveSection('symptoms');
+                    if (activeSection === 'history') setActiveSection('biometrics');
+                  }}
+                  disabled={activeSection === 'personal'}
+                >
+                  Previous
+                </button>
+                
+                {activeSection !== 'history' ? (
                   <button 
                     type="button" 
-                    className="btn btn-outline-primary"
+                    className="btn btn-primary"
                     onClick={() => {
-                      if (activeSection === 'personal') return;
-                      if (activeSection === 'symptoms') setActiveSection('personal');
-                      if (activeSection === 'biometrics') setActiveSection('symptoms');
-                      if (activeSection === 'history') setActiveSection('biometrics');
+                      if (activeSection === 'symptoms' && selectedSymptoms.length === 0) {
+                        alert('Please select at least one symptom');
+                        return;
+                      }
+                      if (activeSection === 'personal') setActiveSection('symptoms');
+                      if (activeSection === 'symptoms') setActiveSection('biometrics');
+                      if (activeSection === 'biometrics') setActiveSection('history');
                     }}
-                    disabled={activeSection === 'personal'}
                   >
-                    Previous
+                    Next
                   </button>
-                  
-                  {activeSection !== 'history' ? (
-                    <button 
-                      type="button" 
-                      className="btn btn-primary"
-                      onClick={() => {
-                        if (activeSection === 'personal') setActiveSection('symptoms');
-                        if (activeSection === 'symptoms') setActiveSection('biometrics');
-                        if (activeSection === 'biometrics') setActiveSection('history');
-                      }}
-                    >
-                      Next
-                    </button>
-                  ) : (
-                    <button type="submit" className="btn btn-success">
-                      Submit Form
-                    </button>
-                  )}
+                ) : (
+                  <button 
+                    type="submit" 
+                    form="medicalForm" 
+                    className="btn btn-success"
+                  >
+                    Submit Form
+                  </button>
+                )}
                 </div>
-              </form>
             </div>
           </div>
         </div>
