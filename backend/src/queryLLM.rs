@@ -1,19 +1,16 @@
-use std::collections::HashMap;
-use actix_multipart::form::json::Json;
-use actix_web::{error::ErrorInternalServerError, web::{self, Payload}, HttpResponse, Responder};
-use chrono::Duration;
-use pdf_extract::content;
-use r2d2_redis::redis::Commands;
+use std::sync::{Arc, Mutex}; 
+use actix_web::{error::ErrorInternalServerError, web::{self, Data, Payload}, HttpResponse, Responder};
+use r2d2::Pool;
+use r2d2_redis::{redis::Commands, RedisConnectionManager};
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 use tokio::time::sleep;
-use sqlx::{pool, PgPool};
 
 pub async fn queryDeepSeekR1(
     id: String,
     data: Value,
-    db_pool: web::Data<PgPool>
+    arr: Arc<Mutex<Vec<String>>>,
 ) -> Result<(), actix_web::Error> {
     println!("QUERYING:::: {}", id);
 
@@ -106,7 +103,7 @@ pub async fn queryDeepSeekR1(
                 "role": "user",
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                Summarize your information in a few sentences."
+                Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
             }, 
             {
                 "role": "user",
@@ -154,13 +151,14 @@ pub async fn queryDeepSeekR1(
             .and_then(|message| message.get("content"))
             .and_then(|content| content.as_str())
         {
-            println!("Content: {}", content);
-            sqlx::query("UPDATE results SET deepseek = $1 WHERE id = $2")
-                .bind(content)
-                .bind(&id)
-                .execute(db_pool.get_ref())
-                .await
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+            if let Ok(mut arr_guard) = arr.lock() {
+                arr_guard[0] = content.to_string();
+            } else if let Err(poisoned) = arr.lock() {
+                eprintln!("Mutex is poisoned. Recovering...");
+                let mut arr_guard = poisoned.into_inner(); // Recover the data
+                arr_guard[0] = content.to_string();
+            }
+            println!("{}", content); 
             flag = false;
         } else {
             eprintln!("Error: Missing or invalid content in API response");
@@ -173,7 +171,7 @@ pub async fn queryDeepSeekR1(
 pub async fn queryGemini(
     id: String,
     data: Value,
-    db_pool: web::Data<PgPool>
+    arr: Arc<Mutex<Vec<String>>>,
 ) -> Result<(), actix_web::Error> {
     sleep(std::time::Duration::from_secs(5)).await;
     println!("QUERYING:::: {}", id);
@@ -283,7 +281,7 @@ pub async fn queryGemini(
             {
                 "parts": [
                     {
-                        "text": "You are a knowledgeable doctor. Provide a helpful, evidence-based diagnosis and treatment plan for my health condition based on the provided health information. Summarize your information in a few sentences."
+                        "text": "You are a knowledgeable doctor. Provide a helpful, evidence-based diagnosis and treatment plan for my health condition based on the provided health information. Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
                     },
                     {
                         "text": prompt
@@ -350,13 +348,11 @@ pub async fn queryGemini(
             .and_then(|part| part.get("text"))
             .and_then(|text| text.as_str())
         {
-            println!("Content: {}", content);
-            sqlx::query("UPDATE results SET gemini = $1 WHERE id = $2")
-                .bind(content)
-                .bind(&id)
-                .execute(db_pool.get_ref())
-                .await
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+            if let Ok(mut arr_guard) = arr.lock() {
+                arr_guard[1] = content.to_string();
+            } else {
+                eprintln!("Failed to lock the mutex for arr");
+            }
             flag = false;
         } else {
             eprintln!("Error: Missing or invalid content in API response");
@@ -369,7 +365,7 @@ pub async fn queryGemini(
 pub async fn queryLlama(
     id: String,
     data: Value,
-    db_pool: web::Data<PgPool>
+    arr: Arc<Mutex<Vec<String>>>,
 ) -> Result<(), actix_web::Error> {
     sleep(std::time::Duration::from_secs(10)).await;
     println!("QUERYING:::: {}", id);
@@ -516,13 +512,12 @@ pub async fn queryLlama(
             .and_then(|message| message.get("content"))
             .and_then(|content| content.as_str())
         {
-            println!("Content: {}", content);
-            sqlx::query("UPDATE results SET llama = $1 WHERE id = $2")
-                .bind(content)
-                .bind(&id)
-                .execute(db_pool.get_ref())
-                .await
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+            if let Ok(mut arr_guard) = arr.lock() {
+                arr_guard[2] = content.to_string();
+            } else {
+                eprintln!("Failed to lock the mutex for arr");
+                
+            }
             flag = false;
         } else {
             eprintln!("Error: Missing or invalid content in API response");
@@ -539,42 +534,29 @@ struct ResultData {
 }
 pub async fn queryConsensus(
     id: String,
-    db_pool: web::Data<PgPool>,
-    pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
+    redis_pool: Data<Pool<RedisConnectionManager>>, 
+    arr: Arc<Mutex<Vec<String>>>
 ) -> Result<(), actix_web::Error> {
-    let mut con = pool.get().map_err(|e| {
-        eprintln!("Error getting Redis connection: {}", e);
-        actix_web::error::ErrorInternalServerError("Internal server error")
-    })?;
-    println!("QUERYING:::: {}", id);
     let mut flag = true;
     while (flag) {
         sleep(std::time::Duration::from_secs(5)).await;
-        let k : Option<i32> = con.get(format!("{}_ready", id.clone())).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
-        if k == Some(3) {
-            println!("All models are ready for ID: {}", id);
-            flag = false;
-        } else {
-            println!("Waiting for models to be ready for ID: {}", id);
-        }
+        if let Ok(arr_guard) = arr.lock() {
+            if arr_guard.iter().all(|s| !s.is_empty()) {
+                println!("All models are ready for ID: {}", id);
+                
+                flag = false;
+        }  else {
+          println!("Waiting for models to be ready for ID: {}", id);
+        } 
     }
+}
     flag = true;
     while (flag) {
-    let res = sqlx::query_as::<_, ResultData>("SELECT deepseek, gemini, llama FROM results WHERE id = $1")
-                .bind(id.clone())
-                .fetch_one(db_pool.get_ref())
-                .await;
-            match res {
-                Err(e) => {
-                    eprintln!("Error fetching results: {}", e);
-                    return Err(actix_web::error::ErrorInternalServerError("Internal server error"))
-                }
-                Ok(res) => {
-                    let data = format!(
-                        "DeepSeek: {}, Gemini: {}, Llama: {}",
-                        res.deepseek, res.gemini, res.llama
-                    );
-                let payload = json!({
+        let data = "";
+        if let Ok(arr_guard) = arr.lock() {
+            let data = arr_guard.join("#");     
+        }
+        let payload = json!({
                     "model": "deepseek/deepseek-r1:free",
                     "messages": [
                         {
@@ -591,9 +573,12 @@ pub async fn queryConsensus(
                             (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
                             Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
+                            Do NOT box the output. Do NOT include any other formatting or text. There cannot be /boxed{} anywhere. 
+                            Give me the response just like the example I gave you. 
                             Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
                             Just summarize them together. 
+                            RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH.
                             Determine a diagnosis concensus from the three different diagnoses."
                         },
                         {
@@ -641,23 +626,14 @@ pub async fn queryConsensus(
                 {
                     println!("Content: {}", content);
                     if !content.is_empty() {
-                    flag = false; 
-                    sqlx::query("UPDATE results SET consensus = $1 WHERE id = $2")
-                        .bind(content)
-                        .bind(&id)
-                        .execute(db_pool.get_ref())
-                        .await
-                        .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
-                    }
-                    else {
-                        eprintln!("Error: Missing or invalid content in API response");
-                    }
-                } else {
-                    eprintln!("Error: Missing or invalid content in API response");
-                    return Err(actix_web::error::ErrorInternalServerError("Invalid API response"));
-                }
-            }
-            }
+                    let mut con = redis_pool
+            .get()
+            .map_err(ErrorInternalServerError)
+            .expect("Failed to get redis connection");
+            con.set(format!("consensus_{}", id), content).map_err(ErrorInternalServerError)?;
+            flag = false;
         }
+        }
+    }
     Ok(())
 }

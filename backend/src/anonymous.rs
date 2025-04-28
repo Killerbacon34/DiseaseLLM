@@ -4,11 +4,10 @@ use actix_web::{error::ErrorInternalServerError, get, post, web, HttpMessage, Ht
 use actix_identity::Identity;
 use actix_session::Session;
 use r2d2_redis::redis::Commands;
-use rand::RngCore;
+use rand::{Rng, RngCore};
 use serde::{Deserialize, Serialize};
 use crate::queryLLM; // Import the queryLLM module
 use base64::{engine::general_purpose::URL_SAFE, Engine};
-use sqlx::PgPool;
 /*#[get("/anonapi/release")]
 pub async fn anon_release(request: HttpRequest, session: Session)-> impl Responder {
     let mut random_bytes = [0u8; 32];
@@ -27,11 +26,11 @@ pub async fn anon_release(request: HttpRequest,)-> impl Responder {
     let session_token = URL_SAFE.encode(&random_bytes);
     Identity::login(&request.extensions(),session_token.clone()).unwrap();
     println!("Provisioned session token: {}", session_token);
-    HttpResponse::Ok().body(format!("Session token provisioned: {}", session_token))
+    HttpResponse::Ok().body(format!("{}", session_token))
 }
 
 #[post("/manualupload")]
-pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>, data: web::Json<HashMap<String, String>>, db_pool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn anon_manual_upload(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>, data: web::Json<HashMap<String, String>>) -> Result<HttpResponse, actix_web::Error> {
     if let Some(id) = id {
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
         con.set(format!("anonLlama_{}_data", id.id().unwrap()), "").map_err(ErrorInternalServerError)?;
@@ -56,82 +55,38 @@ struct ResultData {
 
 #[get("/results")]
 pub async fn anon_check_results(
-    pool: web::Data<PgPool>,
     redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
     id: Option<Identity>,
 ) -> impl Responder {
     if let Some(id) = id {
-        let con = redis_pool
+        let mut con = redis_pool
             .get()
             .map_err(ErrorInternalServerError)
             .expect("Failed to get redis connection");
-        let res = sqlx::query_as::<_, (String,)>("SELECT consensus FROM results WHERE id = $1")
-            .bind(id.id().unwrap())
-            .fetch_one(pool.get_ref())
-            .await
-            .map(|row| row.0);
-
-        match res {
-            Err(e) => {
-                eprintln!("Error fetching results: {}", e);
-                return HttpResponse::InternalServerError().body("Internal server error");
+        if con.exists(format!("consensus_{}", id.id().unwrap())).unwrap_or(false) {
+            let res: Result<String, r2d2_redis::redis::RedisError> = con.get(format!("consensus_{}", id.id().unwrap()));
+            if res.is_ok() {
+                let res_value = res.unwrap();
+                let parts: Vec<&str> = res_value.split("#").collect();
+                println!("Parts: {:?}", parts);
+                return HttpResponse::Ok().json(serde_json::json!({
+                    "Diagnosis": parts[0],
+                    "Treatment Plan": parts[1],
+                    "Drug Usage Plan": parts[2],
+                }));
             }
-            Ok(res) => {
-                /*let start_delimiter = "xxx";
-                let end_delimiter = "xxx";
-                let input = res.clone();
-
-                let (sandwiched, remaining) = if let Some(start_index) = input.find(start_delimiter) {
-                    if let Some(end_index) =
-                        input[start_index + start_delimiter.len()..].find(end_delimiter)
-                    {
-                        let sandwiched = input[start_index + start_delimiter.len()
-                            ..start_index + start_delimiter.len() + end_index]
-                            .trim()
-                            .to_string();
-
-                        let remaining = format!(
-                            "{}{}",
-                            &input[..start_index],
-                            &input[start_index + start_delimiter.len() + end_index + end_delimiter.len()..]
-                        )
-                        .trim()
-                        .to_string();
-
-                        (Some(sandwiched), Some(remaining))
-                    } else {
-                        (None, Some(input))
-                    }
-                } else {
-                    (None, Some(input))
-                };*/
-                //remaining = res;
-                println!("remaining: {:?}", res);
-
-                //if let Some(sandwiched) = sandwiched {
-                    if !res.is_empty() {
-                        // Split the remaining response by '/'
-                        let parts: Vec<&str> = res.split('#').map(|s| s.trim()).collect();
-
-                        // Extract the three parts, handling cases where there are fewer than three parts
-                        let part1 = parts.get(0).unwrap_or(&"").to_string();
-                        let part2 = parts.get(1).unwrap_or(&"").to_string();
-                        let part3 = parts.get(2).unwrap_or(&"").to_string();
-
-                        return HttpResponse::Ok().json(serde_json::json!({
-                            "Diagnosis": part1,
-                            "Treatment Plan": part2,
-                            "Drug Usage Plan": part3
-                        }));
-                    } else {
-                        return HttpResponse::Ok().body("No remaining content found");
-                    }
+            else {
+                return HttpResponse::InternalServerError().body("No consensus found");
+            }
+        } else {
+                return HttpResponse::InternalServerError().body("No consensus found");
+        }
+        
                 /*} else {
                     return HttpResponse::Ok().body("No sandwiched content found");
                 }*/
-            }
-        }
-    } else {
+                    }
+    else {
         return HttpResponse::Unauthorized().body("Unauthorized");
     }
 }
@@ -158,26 +113,4 @@ struct ResultData {
     llama: String,
 }
 
-#[get("/alloutput")]
-pub async fn anon_all_output(pool: web::Data<PgPool>, redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>, id: Option<Identity>) -> impl Responder {
-    if let Some(id) = id {
-        let mut con = redis_pool.get().map_err(ErrorInternalServerError).expect("Failed to get redis connection");
-        let res = sqlx::query_as::<_, ResultData>("SELECT deepseek, gemini, llama FROM results WHERE id = $1")
-            .bind(id.id().unwrap())
-            .fetch_one(pool.get_ref())
-            .await;
-        match res {
-            Err(e) => {
-                eprintln!("Error fetching results: {}", e);
-                return HttpResponse::InternalServerError().body("Internal server error")
-            }
-            Ok(results) => {
-                return HttpResponse::Ok().json(results);
-            }
-        }
-    }
-    else {
-        return HttpResponse::Unauthorized().body("Unauthorized")
-    }
-}
 

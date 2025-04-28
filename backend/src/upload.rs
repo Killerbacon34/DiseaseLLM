@@ -2,15 +2,19 @@ use actix_identity::Identity;
 use actix_web::{error::ErrorInternalServerError, get, post, rt::spawn, web, HttpResponse, Responder};
 use actix_multipart::Multipart;
 use r2d2_redis::redis::Commands;
+use rand::{random, RngCore};
 use sanitize_filename::sanitize;
 use serde::{Serialize, Deserialize};
-use std::fs::{self, File};
-use futures_util::{stream::StreamExt, FutureExt, future};
+use sqlx::pool;
+use std::{fs::{self, File}, string};
+use futures_util::{stream::StreamExt, FutureExt, future, future::join_all};
 use std::io::Write;
-use sqlx::PgPool;
 use regex::Regex;
+use std::sync::{Arc, Mutex};
 use tokio::{sync::futures, time::{timeout, Duration}};
 use crate::queryLLM; 
+use base64::{engine::general_purpose::URL_SAFE, Engine};
+
 
 #[post("/uploadFile")]
 pub async fn upload_file(mut payload: Multipart) -> impl Responder {
@@ -155,7 +159,7 @@ pub struct ManualData {
 
 #[post("/uploadForm")]
 pub async fn upload_form(
-    pool: web::Data<PgPool>,
+    //pool: web::Data<PgPool>,
     data: web::Json<ManualData>,
     redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
     id: Option<Identity>,
@@ -171,22 +175,27 @@ pub async fn upload_form(
 
         let data_value = serde_json::to_value((*data).clone())
             .map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
+ 
 
         // Spawn background tasks
         let redis_pool_clone = redis_pool.clone();
-        let pool_clone = pool.clone();
-        //add column to db for user id and data value
-        sqlx::query("INSERT INTO results (id) VALUES ($1)")
+        /*sqlx::query("INSERT INTO results (id) VALUES ($1)")
             .bind(&user_id)
             .execute(pool.get_ref())
             .await
-            .map_err(|_| ErrorInternalServerError("Failed to insert data into database"))?;
+            .map_err(|_| ErrorInternalServerError("Failed to insert data into database"))?;*/
+        let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
+        let deepseekShare = Arc::clone(&arr);
+        let geminiShare = Arc::clone(&arr);
+        let llamaShare = Arc::clone(&arr);
+        let consensusShare = Arc::clone(&arr);
+
         tokio::spawn(async move {
             let tasks = vec![
                 spawn_task_with_timeout(
                     "DeepseekR1",
                     Duration::from_secs(120), // TODO: change to a more reasonable timeout 
-                    queryLLM::queryDeepSeekR1(user_id.clone(), data_value.clone(), pool_clone.clone())
+                    queryLLM::queryDeepSeekR1(user_id.clone(), data_value.clone(), Arc::clone(&deepseekShare))
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in DeepSeekR1: {:?}", err);
                         })),
@@ -195,7 +204,7 @@ pub async fn upload_form(
                 ),spawn_task_with_timeout(
                     "Gemini",
                     Duration::from_secs(125), // TODO: change to a more reasonable timeout
-                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), pool_clone.clone())
+                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), Arc::clone(&geminiShare))
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in Gemini: {:?}", err);
                         })),
@@ -204,7 +213,7 @@ pub async fn upload_form(
                 ),spawn_task_with_timeout(
                     "Llama",
                     Duration::from_secs(130), // TODO: change to a more reasonable timeout 
-                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), pool_clone.clone())
+                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), Arc::clone(&llamaShare))
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in Llama: {:?}", err);
                         })),
@@ -213,7 +222,7 @@ pub async fn upload_form(
                 ), spawn_task_with_timeout(
                     "Consensus",
                     Duration::from_secs(240), // TODO: change to a more reasonable timeout 
-                    queryLLM::queryConsensus(user_id.clone(), pool_clone.clone(), redis_pool_clone.clone())
+                    queryLLM::queryConsensus(user_id.clone(), redis_pool_clone.clone(), Arc::clone(&consensusShare))
                         .map(|res| res.unwrap_or_else(|err| {
                             eprintln!("Error in Consensus: {:?}", err);
                         })),
@@ -276,4 +285,88 @@ where
             }
         }
     })
+}
+
+/*#[get("/diagnostics")]
+pub async fn diag () -> impl Responder {
+     
+}*/
+#[post("/results")]
+pub async fn anon_all_output(
+    data: web::Json<ManualData>,
+    redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnectionManager>>,
+) -> Result<HttpResponse, actix_web::Error> {
+ let mut random_bytes = [0u8; 32];
+    rand::rng().fill_bytes(&mut random_bytes);
+    let user_id = URL_SAFE.encode(&random_bytes);
+        let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
+
+        // Initialize Redis key to track task progress
+        con.set(format!("{}_ready", user_id), 0)
+            .map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
+        let data_value = serde_json::to_value((*data).clone())
+            .map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
+ 
+
+        // Spawn background tasks
+        let redis_pool_clone = redis_pool.clone();
+        /*sqlx::query("INSERT INTO results (id) VALUES ($1)")
+            .bind(&user_id)
+            .execute(pool.get_ref())
+            .await
+            .map_err(|_| ErrorInternalServerError("Failed to insert data into database"))?;*/
+let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
+        let deepseekShare = Arc::clone(&arr);
+        let geminiShare = Arc::clone(&arr);
+        let llamaShare = Arc::clone(&arr);
+        let consensusShare = Arc::clone(&arr);
+        let tasks = vec![
+                spawn_task_with_timeout(
+                    "DeepseekR1",
+                    Duration::from_secs(120), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryDeepSeekR1(user_id.clone(), data_value.clone(), Arc::clone(&deepseekShare))
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in DeepSeekR1: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),spawn_task_with_timeout(
+                    "Gemini",
+                    Duration::from_secs(125), // TODO: change to a more reasonable timeout
+                    queryLLM::queryGemini(user_id.clone(), data_value.clone(), Arc::clone(&geminiShare))
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Gemini: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),spawn_task_with_timeout(
+                    "Llama",
+                    Duration::from_secs(130), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryLlama(user_id.clone(), data_value.clone(), Arc::clone(&llamaShare))
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Llama: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ), spawn_task_with_timeout(
+                    "Consensus",
+                    Duration::from_secs(240), // TODO: change to a more reasonable timeout 
+                    queryLLM::queryConsensus(user_id.clone(), redis_pool_clone.clone(), Arc::clone(&consensusShare))
+                        .map(|res| res.unwrap_or_else(|err| {
+                            eprintln!("Error in Consensus: {:?}", err);
+                        })),
+                    redis_pool_clone.clone(),
+                    user_id.clone(),
+                ),
+            ];
+        join_all(tasks).await;
+        let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
+        let res: String = con.get(format!("consensus_{}", user_id)).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
+        let parts: Vec<&str> = res.split("#").collect();
+        println!("Parts: {:?}", parts);
+        return Ok(HttpResponse::Ok().json(serde_json::json!({
+            "Diagnosis": parts[0],
+            "Treatment Plan": parts[1],
+            "Drug Usage Plan": parts[2],
+        })));
 }

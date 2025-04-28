@@ -2,7 +2,7 @@ use actix_web::{App, HttpServer, middleware::Logger, web, cookie::{self, SameSit
 use actix_identity::{IdentityMiddleware}; 
 use actix_session::{config::PersistentSession, storage::{CookieSessionStore, RedisSessionStore}, SessionMiddleware};
 use actix_cors::Cors;
-use sqlx::{database, postgres:: { PgPool, PgPoolOptions }, Connection, PgConnection};
+//use sqlx::{database, postgres:: { PgPool, PgPoolOptions }, Connection, PgConnection};
 use r2d2_redis::RedisConnectionManager;
 use std::{env, time::Duration};
 use dotenv::dotenv;
@@ -15,18 +15,18 @@ mod anonymous;
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
-    let database_url = format!("postgres://{}:{}@{}:{}/{}", 
+    /*let database_url = format!("postgres://{}:{}@{}:{}/{}", 
         dotenv::var("DB_USER").unwrap(), 
         dotenv::var("DB_PASSWORD").unwrap(), 
         dotenv::var("DB_URL").unwrap(), 
         dotenv::var("DB_PORT").unwrap(),
         dotenv::var("DB_NAME").unwrap());
-    println!("Connecting to {}", &database_url);
-    let pool = PgPoolOptions::new()
+    println!("Connecting to {}", &database_url);*/
+    /*let pool = PgPoolOptions::new()
         .max_connections(10)
         .connect(&database_url)
-        .await?;
-    println!("✅ Successfully connected to the database!");
+        .await?;*/
+    //println!("✅ Successfully connected to the database!");
     std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init(); 
     let manager = RedisConnectionManager::new("redis://127.0.0.1:6379").unwrap();
@@ -42,8 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
-                    //.allow_any_origin()
-                    .allowed_origin("http://localhost:3000")
+                    .allow_any_origin()
+                    //.allowed_origin("http://localhost:3000")
                     .allow_any_method()
                     .allow_any_header()
                     .supports_credentials()
@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .build(),
             )
-            .app_data(web::Data::new(pool.clone()))
+            //.app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(redis_pool.clone()))
             .service(web::scope("/auth")
                 .service(login::login)
@@ -84,7 +84,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::anon_release)
                 .service(anonymous::checkconn)
                 .service(anonymous::check_session)
-                .service(anonymous::anon_all_output)
+            )
+            .service(web::scope("/insecure")
+                .service(upload::anon_all_output)
             )
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
@@ -93,10 +95,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn validate_token(pool: &PgPool, token: &str) -> bool {
+/*async fn validate_token(pool: &PgPool, token: &str) -> bool {
     sqlx::query("SELECT $1 FROM users WHERE token = $1")
         .bind(token)
         .fetch_one(pool)
         .await
         .is_ok()
-}
+}*/
