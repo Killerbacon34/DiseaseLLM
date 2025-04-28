@@ -36,6 +36,7 @@ Pull redis image
 ```bash
   docker pull redis
 ```
+<!--
 Open the Docker Desktop Application and go to images. Then press the run button on the postgres image
 ![Screenshot 2025-04-15 144046](https://github.com/user-attachments/assets/3545607a-3dcb-4e74-b794-831ff7419a64)
 
@@ -43,7 +44,7 @@ Enter in the options in the image below and click run
 ![Screenshot 2025-04-15 144128](https://github.com/user-attachments/assets/700c7d8e-b0d7-4220-9add-7916954e9669)
 
 Go to containers and select the start button on the one called DLLM
-
+-->
 <!--
 Then run the following commands to initialize the project database
 ```bash
