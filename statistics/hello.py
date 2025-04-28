@@ -68,10 +68,10 @@ with open(input_file, 'r') as file:
             }
             response = requests.post("http://localhost:4545/insecure/results", headers=headers, json=json_data)
             if response.status_code != 200:
-                print(f"Error: {response.status_code} for /api/uploadForm")
+                print(f"Error: {response.status_code} for /insecure/results")
                 continue
             else:
-                print(f"Success: {response.status_code} for /api/uploadForm")
+                print(f"Success: {response.status_code} for /insecure/results")
                 totalcnt += 1
                 response_data = response.json()
                 print(f"Response: {response_data}")

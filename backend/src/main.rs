@@ -38,12 +38,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let key = Key::generate();
 
     HttpServer::new(move || {
+        let enable_insecure = dotenv::var("DEV").unwrap_or_else(|_| "false".to_string()) == "true"; //REMEMBER TO SET THIS TO FALSE IN PRODUCTION
+
         App::new()
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
                     .allow_any_origin()
-                    //.allowed_origin("http://localhost:3000")
                     .allow_any_method()
                     .allow_any_header()
                     .supports_credentials()
@@ -66,7 +67,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                     .build(),
             )
-            //.app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(redis_pool.clone()))
             .service(web::scope("/auth")
                 .service(login::login)
@@ -85,9 +85,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::checkconn)
                 .service(anonymous::check_session)
             )
-            .service(web::scope("/insecure")
-                .service(upload::anon_all_output)
-            )
+            // Conditionally include the /insecure scope
+            .configure(|cfg| {
+                if enable_insecure {
+                    cfg.service(web::scope("/insecure")
+                        .service(upload::anon_all_output)
+                    );
+                }
+            })
     })
     .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
     .run()
