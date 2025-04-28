@@ -22,7 +22,8 @@ Then navigate into the project directory
 ```bash
   cd DiseaseLLM
 ```
-## Step 2: Initialize Database
+Step 2: Initialize Redis
+<!--
 Install Docker Desktop using the link below
 ```
    https://www.docker.com/products/docker-desktop/
@@ -30,7 +31,7 @@ Install Docker Desktop using the link below
 Pull postgres image
 ```bash
   docker pull postgres:latest
-```
+```-->
 Pull redis image
 ```bash
   docker pull redis
@@ -43,19 +44,18 @@ Enter in the options in the image below and click run
 
 Go to containers and select the start button on the one called DLLM
 
-
+<!--
 Then run the following commands to initialize the project database
 ```bash
   docker cp backend/sqlinit.sql DLLM:sqlinit.sql 
 ```
 ```bash
   docker exec -it DLLM psql -U user -f sqlinit.sql
-```
+```-->
 ```bash
   docker run --name my-redis -p 6379:6379 -d redis
 ```
 Then, go back to containers and make sure the container for redis is currently running
-Make sure to run the DLLM container within Docker Desktop, BOTH containers need to be running on the specfied ports for the backend to start.
 
 ## Step 3: Run Backend
 In one terminal, navigate to source directory in backend
