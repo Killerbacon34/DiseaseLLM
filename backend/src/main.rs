@@ -29,10 +29,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //println!("✅ Successfully connected to the database!");
     std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init(); 
-    let manager = RedisConnectionManager::new("redis://127.0.0.1:6379").unwrap();
+    let redis_link = format!("redis://{}:{}", dotenv::var("REDIS_URL").unwrap_or_else(|_| "localhost".to_string()), dotenv::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string()));
+    let manager = RedisConnectionManager::new(redis_link.clone()).unwrap();
     let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
     println!("✅ Successfully connected to the redis server!");
-    let redis_session = RedisSessionStore::new("redis://127.0.0.1:6379").await.unwrap();
+    let redis_session = RedisSessionStore::new(redis_link.clone()).await.unwrap();
     println!("✅ Successfully connected to the redis session store!");
     // Generate a secure random key for session middleware
     let key = Key::generate();
