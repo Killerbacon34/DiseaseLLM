@@ -12,6 +12,12 @@ RUN apt-get update && \
     ca-certificates \
     build-essential && \
     rm -rf /var/lib/apt/lists/*
+ARG LLM_KEY
+ARG GEMINI_KEY
+ARG DEV
+ARG BACKEND_PORT
+ARG REDIS_PORT
+ARG REDIS_HOST
 
 ENV OPENSSL_DIR=/usr
 ENV PKG_CONFIG_ALLOW_CROSS=1
