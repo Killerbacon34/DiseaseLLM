@@ -19,8 +19,6 @@ ARG BACKEND_PORT
 ARG REDIS_PORT
 ARG REDIS_HOST
 
-ENV OPENSSL_DIR=/usr
-ENV PKG_CONFIG_ALLOW_CROSS=1
 ENV LLM_KEY=${LLM_KEY}
 ENV GEMINI_KEY=${GEMINI_KEY}
 ENV DEV=${DEV}
@@ -28,20 +26,8 @@ ENV BACKEND_PORT=${BACKEND_PORT}
 ENV REDIS_PORT=${REDIS_PORT}
 ENV REDIS_HOST=${REDIS_HOST}
 
-# Install MUSL target for Rust
 RUN rustup target add x86_64-unknown-linux-musl
-
-# Create dummy source files first to cache dependencies
-RUN mkdir -p src && \
-    echo "fn main() {println!(\"Dummy implementation\");}" > src/main.rs
-
-# Copy only the dependency manifests first
 COPY Cargo.toml Cargo.lock ./
-
-# Build dependencies to cache them (this will fail but cache the deps)
-RUN cargo build --release --target=x86_64-unknown-linux-musl || true
-
-# Now copy the real source code
 COPY src ./src
 
 # Build the application with MUSL target
@@ -63,6 +49,5 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/backend /app/b
 
 # Expose the port your application uses
 EXPOSE 4545
-RUN echo "Env test" && printenv
 # Run the application
 CMD ["/app/backend"]
