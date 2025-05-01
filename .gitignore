@@ -4,3 +4,4 @@ frontend/src/.next/*
 frontend/src/node_modules/*
 backend/Cargo.lock
 #backend/.env
+statistics/x.sh
