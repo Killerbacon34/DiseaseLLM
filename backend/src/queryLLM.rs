@@ -298,7 +298,7 @@ pub async fn queryGemini(
 
     let mut flag = true;
     while flag {
-        let api_url = "https://openrouter.ai/api/v1/chat/completions";
+        //let api_url = "https://openrouter.ai/api/v1/chat/completions";
         let client = Client::new();
         println!("TESTING GEMINI_{}", id);
         /* OPENROUTER QUERY FOR GEMINI 
@@ -313,7 +313,7 @@ pub async fn queryGemini(
             .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
         */
         let response = client
-            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAXE3tCFtNrQeUrYhhNT5QNC9YINy6ifx4"))
+            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}", dotenv::var("GEMINI_KEY").unwrap()))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             //.header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
