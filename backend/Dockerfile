@@ -10,6 +10,7 @@ RUN apt-get update && \
     musl-tools \
     libssl-dev \
     ca-certificates \
+    pkg-config libssl-dev \
     build-essential && \
     rm -rf /var/lib/apt/lists/*
 
