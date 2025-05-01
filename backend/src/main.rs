@@ -47,11 +47,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+
     match redis_pool.get() {
         Ok(_) => println!("✅ Successfully connected to the Redis server!"),
         Err(e) => eprintln!("⚠️ Warning: Could not get a connection from the pool: {}", e)
     };    
     let key = Key::generate();
+
+    let redis_session = RedisSessionStore::new(redis_link.clone()).await.unwrap();
+    println!("✅ Successfully connected to the Redis session store!");
 
     HttpServer::new(move || {
         App::new()
