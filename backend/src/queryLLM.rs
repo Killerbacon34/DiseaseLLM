@@ -125,7 +125,7 @@ pub async fn queryDeepSeekR1(
             .post(api_url)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
+            .header("Authorization", format!("Bearer {}", std::env::var("LLM_KEY").unwrap()))
             .json(&payload)
             .send()
             .await
@@ -313,7 +313,7 @@ pub async fn queryGemini(
             .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
         */
         let response = client
-            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}", dotenv::var("GEMINI_KEY").unwrap()))
+            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={}", std::env::var("GEMINI_KEY").unwrap()))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             //.header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
@@ -489,7 +489,7 @@ pub async fn queryLlama(
             .post(api_url)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
+            .header("Authorization", format!("Bearer {}", std::env::var("LLM_KEY").unwrap()))
             .json(&payload)
             .send()
             .await
@@ -601,7 +601,7 @@ pub async fn queryConsensus(
                     .post(api_url)
                     .header("Accept", "application/json")
                     .header("Content-Type", "application/json")
-                    .header("Authorization", format!("Bearer {}", dotenv::var("LLM_KEY").unwrap()))
+                    .header("Authorization", format!("Bearer {}", std::env::var("LLM_KEY").unwrap()))
                     .json(&payload)
                     .send()
                     .await

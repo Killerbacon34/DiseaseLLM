@@ -13,9 +13,14 @@ RUN apt-get update && \
     build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Set OpenSSL environment variables correctly
 ENV OPENSSL_DIR=/usr
 ENV PKG_CONFIG_ALLOW_CROSS=1
+ENV LLM_KEY=${LLM_KEY}
+ENV GEMINI_KEY=${GEMINI_KEY}
+ENV DEV=${DEV}
+ENV BACKEND_PORT=${BACKEND_PORT}
+ENV REDIS_PORT=${REDIS_PORT}
+ENV REDIS_HOST=${REDIS_HOST}
 
 # Install MUSL target for Rust
 RUN rustup target add x86_64-unknown-linux-musl

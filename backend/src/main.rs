@@ -21,6 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let redis_host = std::env::var("REDIS_HOST").unwrap_or_else(|_| "localhost".to_string());
     let redis_port = std::env::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string());
     let redis_link = format!("redis://{}:{}", redis_host, redis_port);
+    println!("Connecting to Redis at {}", redis_link);
 
     let manager = RedisConnectionManager::new(redis_link.clone()).unwrap();
     let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
