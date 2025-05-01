@@ -14,33 +14,25 @@ mod anonymous;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().ok();
-    /*let database_url = format!("postgres://{}:{}@{}:{}/{}", 
-        dotenv::var("DB_USER").unwrap(), 
-        dotenv::var("DB_PASSWORD").unwrap(), 
-        dotenv::var("DB_URL").unwrap(), 
-        dotenv::var("DB_PORT").unwrap(),
-        dotenv::var("DB_NAME").unwrap());
-    println!("Connecting to {}", &database_url);*/
-    /*let pool = PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&database_url)
-        .await?;*/
-    //println!("✅ Successfully connected to the database!");
-    std::env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
-    env_logger::init(); 
-    let redis_link = format!("redis://{}:{}", dotenv::var("REDIS_URL").unwrap_or_else(|_| "localhost".to_string()), dotenv::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string()));
+    // Load .env file, but prioritize existing environment variables
+    dotenv::dotenv().ok();
+
+    // Example: Load Redis configuration
+    let redis_host = std::env::var("REDIS_HOST").unwrap_or_else(|_| "localhost".to_string());
+    let redis_port = std::env::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string());
+    let redis_link = format!("redis://{}:{}", redis_host, redis_port);
+
     let manager = RedisConnectionManager::new(redis_link.clone()).unwrap();
     let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
-    println!("✅ Successfully connected to the redis server!");
+    println!("✅ Successfully connected to the Redis server!");
+
     let redis_session = RedisSessionStore::new(redis_link.clone()).await.unwrap();
-    println!("✅ Successfully connected to the redis session store!");
+    println!("✅ Successfully connected to the Redis session store!");
+
     // Generate a secure random key for session middleware
     let key = Key::generate();
 
     HttpServer::new(move || {
-        let enable_insecure = dotenv::var("DEV").unwrap_or_else(|_| "false".to_string()) == "true"; //REMEMBER TO SET THIS TO FALSE IN PRODUCTION
-
         App::new()
             .wrap(Logger::default())
             .wrap(
@@ -86,25 +78,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::checkconn)
                 .service(anonymous::check_session)
             )
-            // Conditionally include the /insecure scope
             .configure(|cfg| {
-                if enable_insecure {
+                if std::env::var("ENABLE_INSECURE").unwrap_or_else(|_| "false".to_string()) == "true" {
                     cfg.service(web::scope("/insecure")
                         .service(upload::anon_all_output)
                     );
                 }
             })
     })
-    .bind(format!("0.0.0.0:{}", dotenv::var("PORT").unwrap()))?
+    .bind(format!("0.0.0.0:{}", std::env::var("PORT").unwrap_or_else(|_| "4545".to_string())))?
     .run()
     .await?;
+
     Ok(())
 }
-
-/*async fn validate_token(pool: &PgPool, token: &str) -> bool {
-    sqlx::query("SELECT $1 FROM users WHERE token = $1")
-        .bind(token)
-        .fetch_one(pool)
-        .await
-        .is_ok()
-}*/

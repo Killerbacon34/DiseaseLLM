@@ -249,6 +249,7 @@ pub async fn status(redis_pool: web::Data<r2d2::Pool<r2d2_redis::RedisConnection
         if let Some(k) = k {
             if k >= 4 {
                 println!("Finished");
+                con.del(format!("{}_ready", id.id().unwrap())).map_err(|_| ErrorInternalServerError("Failed to delete Redis key"))?;
                 return Ok(HttpResponse::Ok().body("Finished"));
             } else {
                 return Ok(HttpResponse::Accepted().body(format!("{}", k)));
@@ -364,6 +365,7 @@ let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
         let res: String = con.get(format!("consensus_{}", user_id)).map_err(|_| ErrorInternalServerError("Failed to get Redis key"))?;
         let parts: Vec<&str> = res.split("#").collect();
         println!("Parts: {:?}", parts);
+        con.del(format!("consensus_{}", user_id)).map_err(|_| ErrorInternalServerError("Failed to delete Redis key"))?;
         return Ok(HttpResponse::Ok().json(serde_json::json!({
             "Diagnosis": parts[0],
             "Treatment Plan": parts[1],

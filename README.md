@@ -54,7 +54,7 @@ Then run the following commands to initialize the project database
   docker exec -it DLLM psql -U user -f sqlinit.sql
 ```-->
 ```bash
-  docker run --name my-redis -p 6379:6379 -d redis
+  docker run --name redis -d -p 6379:6379 redis:latest --save "" --appendonly no
 ```
 Then, go back to containers and make sure the container for redis is currently running
 
