@@ -20,17 +20,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Example: Load Redis configuration
     let redis_host = std::env::var("REDIS_HOST").unwrap_or_else(|_| "localhost".to_string());
     let redis_port = std::env::var("REDIS_PORT").unwrap_or_else(|_| "6379".to_string());
-    let redis_link = format!("{}:{}", redis_host, redis_port);
+    let redis_link = format!("redis://{}:{}", redis_host, redis_port);
     println!("Connecting to Redis at {}", redis_link);
 
-    let manager = RedisConnectionManager::new(redis_link.clone()).unwrap();
-    let redis_pool = r2d2::Pool::builder().build(manager).unwrap();
-    println!("✅ Successfully connected to the Redis server!");
+    let manager = match RedisConnectionManager::new(redis_url.clone()) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("❌ Failed to create Redis connection manager: {}", e);
+            // Handle the error appropriately for your application
+            // (e.g., return an error, use a default value, etc.)
+            panic!("Cannot continue without Redis connection");
+        }
+    };
 
-    let redis_session = RedisSessionStore::new(redis_link.clone()).await.unwrap();
-    println!("✅ Successfully connected to the Redis session store!");
+    // Build the pool with a timeout and error handling
+    let redis_pool = match r2d2::Pool::builder()
+        .connection_timeout(std::time::Duration::from_secs(5))
+        .build(manager) {
+        Ok(pool) => {
+            println!("✅ Successfully created Redis connection pool!");
+            pool
+        },
+        Err(e) => {
+            eprintln!("❌ Failed to build Redis connection pool: {}", e);
+            panic!("Cannot continue without Redis connection pool");
+        }
+    };
 
-    // Generate a secure random key for session middleware
+    match redis_pool.get() {
+        Ok(_) => println!("✅ Successfully connected to the Redis server!"),
+        Err(e) => eprintln!("⚠️ Warning: Could not get a connection from the pool: {}", e)
+    };    
     let key = Key::generate();
 
     HttpServer::new(move || {
