@@ -57,6 +57,6 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/backend /app/b
 
 # Expose the port your application uses
 EXPOSE 4545
-
+RUN echo "Env test" && printenv
 # Run the application
 CMD ["/app/backend"]
