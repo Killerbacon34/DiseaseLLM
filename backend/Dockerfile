@@ -14,7 +14,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Set OpenSSL environment variables correctly
-ENV OPENSSL_DIR=/usr/include/openssl
+ENV OPENSSL_DIR=/usr
 ENV PKG_CONFIG_ALLOW_CROSS=1
 
 # Install MUSL target for Rust
