@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let redis_link = format!("redis://{}:{}", redis_host, redis_port);
     println!("Connecting to Redis at {}", redis_link);
 
-    let manager = match RedisConnectionManager::new(redis_url.clone()) {
+    let manager = match RedisConnectionManager::new(redis_link.clone()) {
         Ok(m) => m,
         Err(e) => {
             eprintln!("❌ Failed to create Redis connection manager: {}", e);
