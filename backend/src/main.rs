@@ -86,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             })
     })
-    .bind(format!("0.0.0.0:{}", std::env::var("PORT").unwrap_or_else(|_| "4545".to_string())))?
+    .bind(format!("0.0.0.0:{}", std::env::var("BACKEND_PORT").unwrap_or_else(|_| "4545".to_string())))?
     .run()
     .await?;
 
