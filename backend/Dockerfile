@@ -2,10 +2,7 @@
 FROM rust:slim as builder
 
 WORKDIR /app
-RUN apt-get install lsb-release curl gpg
-RUN curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-RUN chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
 # Install required dependencies including properly configured OpenSSL
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -16,6 +13,11 @@ RUN apt-get update && \
     ca-certificates \
     build-essential && \
     rm -rf /var/lib/apt/lists/* 
+RUN apt-get install lsb-release curl gpg
+RUN curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+RUN chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+RUN apt-get update
 RUN systemctl enable redis-server
 RUN systemctl start redis-server
 ARG LLM_KEY
