@@ -11,7 +11,7 @@ const Loading = () => {
     const checkApiStatus = async () => {
       try {
         // const response = await axios.get('http://localhost:4545/api/status', {
-        const response = await axios.get('https://backend-service-646481361829.us-central1.run.app:4545/api/status', {
+        const response = await axios.get('https://backend-service-646481361829.us-central1.run.app/api/status', {
           withCredentials: true,
         });
 

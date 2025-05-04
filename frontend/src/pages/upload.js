@@ -25,7 +25,7 @@ export default function Upload() {
   // File upload mutation
   const mutation = useMutation(
     // (formData) => axios.post('http://localhost:4545/api/uploadFile', formData),
-    (formData) => axios.post('https://backend-service-646481361829.us-central1.run.app:4545/api/uploadFile', formData),
+    (formData) => axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadFile', formData),
     {
       onSuccess: (response) => {
         const data = response.data;
@@ -141,7 +141,7 @@ export default function Upload() {
         druguse: e.target.druguse.value || "0",
       };
       // const response = await axios.post('http://localhost:4545/api/uploadForm', formData, {
-      const response = await axios.post('https://backend-service-646481361829.us-central1.run.app:4545/api/uploadForm', formData, {
+      const response = await axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadForm', formData, {
         headers: {
           'Content-Type': 'application/json',
         },

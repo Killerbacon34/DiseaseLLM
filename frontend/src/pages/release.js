@@ -12,10 +12,10 @@ export default function Release() {
         e.preventDefault();
         try {
             // let apiUrl = 'http://localhost:4545/anon/release'; // Default API
-            let apiUrl = 'https://backend-service-646481361829.us-central1.run.app:4545/anon/release'; // Default API
+            let apiUrl = 'https://backend-service-646481361829.us-central1.run.app/anon/release'; // Default API
             if (previousPage === '/signup') {
                 // apiUrl = 'http://localhost:4545/auth/release'; // API for signup page
-                apiUrl = 'https://backend-service-646481361829.us-central1.run.app:4545/auth/release'; // API for signup page
+                apiUrl = 'https://backend-service-646481361829.us-central1.run.app/auth/release'; // API for signup page
             }
 
             const response = await axios.get(apiUrl, {
