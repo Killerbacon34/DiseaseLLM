@@ -9,13 +9,13 @@ RUN apt-get update && \
     pkg-config \
     musl-tools \
     libssl-dev \
-    redis \
+    #redis \
     ca-certificates \
-    iproute2 \
+    #iproute2 \
     build-essential && \
     rm -rf /var/lib/apt/lists/* 
-RUN redis-server --daemonize yes
-RUN ss -plnt
+#RUN redis-server --daemonize yes
+#RUN ss -plnt
 ARG LLM_KEY
 ARG GEMINI_KEY
 ARG DEV
