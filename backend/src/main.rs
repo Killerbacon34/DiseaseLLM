@@ -76,9 +76,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .wrap(
                 SessionMiddleware::builder(redis_session.clone(), key.clone())
-                    .cookie_secure(false) // Set to `true` only if using HTTPS
+                    .cookie_secure(true) // Set to `true` only if using HTTPS
                     .cookie_http_only(true)
-                    .cookie_same_site(SameSite::Lax) // Use `Lax` for better compatibility
+                    .cookie_same_site(SameSite::None) 
                     .cookie_name("session_token".to_string())
                     .session_lifecycle(
                         PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
