@@ -11,6 +11,7 @@ RUN apt-get update && \
     libssl-dev \
     redis \
     ca-certificates \
+    iproute2 \
     build-essential && \
     rm -rf /var/lib/apt/lists/* 
 RUN redis-server --daemonize yes
