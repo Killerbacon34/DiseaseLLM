@@ -13,8 +13,7 @@ RUN apt-get update && \
     ca-certificates \
     build-essential && \
     rm -rf /var/lib/apt/lists/* 
-RUN systemctl enable redis-server
-RUN systemctl start redis-server
+RUN redis-server --daemonize yes
 ARG LLM_KEY
 ARG GEMINI_KEY
 ARG DEV
