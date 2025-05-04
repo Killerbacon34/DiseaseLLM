@@ -14,6 +14,7 @@ RUN apt-get update && \
     build-essential && \
     rm -rf /var/lib/apt/lists/* 
 RUN redis-server --daemonize yes
+RUN ss -plnt
 ARG LLM_KEY
 ARG GEMINI_KEY
 ARG DEV
