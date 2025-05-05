@@ -555,11 +555,12 @@ pub async fn queryConsensus(
     }
 }
     flag = true;
-    while (flag) {
-        let data = "";
+    while flag {
+        let mut data = String::new();
         if let Ok(arr_guard) = arr.lock() {
-            let data = arr_guard.join("#");     
+            data = arr_guard.join("#");
         }
+        println!("{}", data);
         let payload = json!({
                     "model": "deepseek/deepseek-r1:free",
                     "messages": [
