@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .allowed_origin("https://diseasellm-646481361829.us-central1.run.app")
                     .allowed_origin("http://localhost:3000")
                     .cookie_domain(Some("https://backend-service-646481361829.us-central1.run.app"))
-                    .allow_any_method()
+                    .allowed_methods(vec!["GET", "POST"])
                     .allow_any_header()
                     .supports_credentials()
                     .max_age(3600),
