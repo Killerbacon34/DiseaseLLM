@@ -123,7 +123,9 @@ export default function Upload() {
 
   const handleManual = async (e) => {
     e.preventDefault();
+    
     try {
+      
       const formData = {
         height: e.target.height.value ? parseInt(e.target.height.value) : 0,
         weight: e.target.weight.value ? parseInt(e.target.weight.value) : 0,
@@ -596,13 +598,21 @@ export default function Upload() {
                   Previous
                 </button> */}
                 
-                  <button 
+                <button
                   type="submit" 
                   form="medicalForm" 
                   className="btn btn-success"
+                  onClick={() => {
+                    if (selectedSymptoms.length === 0) {
+                      alert('Please enter at least one symptom before submitting.');
+                      setActiveSection('symptoms');
+                      return;
+                    }
+                  }}
                 >
                   Submit Form
                 </button>
+            
                   
                 </div>
             </div>
