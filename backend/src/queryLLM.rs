@@ -558,7 +558,10 @@ pub async fn queryConsensus(
     while flag {
         let mut data = String::new();
         if let Ok(arr_guard) = arr.lock() {
-            data = arr_guard.join("#");
+            data.push_str(&format!("{}#{}#{}", arr_guard[0], arr_guard[1], arr_guard[2]));
+            print("Data: {}", data);
+        } else {
+            eprintln!("Failed to lock the mutex for arr");
         }
         println!("{}", data);
         let payload = json!({
