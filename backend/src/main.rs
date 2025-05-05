@@ -62,7 +62,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
-                    .allow_any_origin()
+                    .allowed_origin("https://diseasellm-646481361829.us-central1.run.app")
+                    .allowed_origin("http://localhost:3000")
+                    .cookie_domain(Some("https://backend-service-646481361829.us-central1.run.app"))
                     .allow_any_method()
                     .allow_any_header()
                     .supports_credentials()
@@ -79,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .cookie_secure(true) // Set to `true` only if using HTTPS
                     .cookie_http_only(true)
                     .cookie_same_site(SameSite::None) 
-                    .cookie_name("session_token".to_string())
+                    .cookie_name("__session".to_string())
                     .session_lifecycle(
                         PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
                     )
