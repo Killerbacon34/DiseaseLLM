@@ -582,7 +582,7 @@ export default function Upload() {
               </form>
 
               <div className="d-flex justify-content-between mt-4">
-                <button 
+                {/* <button 
                   type="button" 
                   className="btn btn-outline-primary"
                   onClick={() => {
@@ -594,33 +594,16 @@ export default function Upload() {
                   disabled={activeSection === 'personal'}
                 >
                   Previous
-                </button>
+                </button> */}
                 
-                {activeSection !== 'history' ? (
                   <button 
-                    type="button" 
-                    className="btn btn-primary"
-                    onClick={() => {
-                      if (activeSection === 'symptoms' && selectedSymptoms.length === 0) {
-                        alert('Please select at least one symptom');
-                        return;
-                      }
-                      if (activeSection === 'personal') setActiveSection('symptoms');
-                      if (activeSection === 'symptoms') setActiveSection('biometrics');
-                      if (activeSection === 'biometrics') setActiveSection('history');
-                    }}
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button 
-                    type="submit" 
-                    form="medicalForm" 
-                    className="btn btn-success"
-                  >
-                    Submit Form
-                  </button>
-                )}
+                  type="submit" 
+                  form="medicalForm" 
+                  className="btn btn-success"
+                >
+                  Submit Form
+                </button>
+                  
                 </div>
             </div>
           </div>
