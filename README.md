@@ -3,6 +3,7 @@ This github contains the code used for the Disease Large Language Model capstone
 * Deepseek R1
 * Llama
 * Gemini
+This project currently only works on Microsoft Edge, Google Chrome, and Firefox.
 
 The goal for the project was to provide a user-friendly and intuitive interface for the public to obtain accurate medical diagnoses without the need to create an appointment with a doctor.
 # Dependencies:
