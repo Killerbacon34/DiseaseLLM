@@ -154,6 +154,7 @@ pub async fn queryDeepSeekR1(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[0] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else if let Err(poisoned) = arr.lock() {
                 eprintln!("Mutex is poisoned. Recovering...");
                 let mut arr_guard = poisoned.into_inner(); // Recover the data
@@ -353,6 +354,7 @@ pub async fn queryGemini(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[1] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else {
                 eprintln!("Failed to lock the mutex for arr");
             }
@@ -518,6 +520,7 @@ pub async fn queryLlama(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[2] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else {
                 eprintln!("Failed to lock the mutex for arr");
                 
