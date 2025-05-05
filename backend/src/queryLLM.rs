@@ -103,7 +103,8 @@ pub async fn queryDeepSeekR1(
                 "role": "user",
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                If there are any values in the health information that are equal to zero, disregard them and do not use them in your response.
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
                 Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
             }, 
             {
@@ -283,9 +284,11 @@ pub async fn queryGemini(
             {
                 "parts": [
                     {
-                        "text": "You are a knowledgeable doctor. Provide a helpful, evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                        If there are any values in the health information that are equal to zero, disregard them and do not use them in your response. 
-                        Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
+                        "text": "You are a knowledgeable doctor. Provide a helpful, 
+                evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
+                Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
                     },
                     {
                         "text": prompt
@@ -470,8 +473,9 @@ pub async fn queryLlama(
                 "role": "user",
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                If there are any values in the health information that are equal to zero, disregard them and do not use them in your response.
-                Summarize your information in a few sentences."
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
+                Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH." 
             },
             {
                 "role": "user",
