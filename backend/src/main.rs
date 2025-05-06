@@ -105,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::check_session)
             )
             .configure(|cfg| {
-                if std::env::var("ENABLE_INSECURE").unwrap_or_else(|_| "false".to_string()) == "true" {
+                if std::env::var("DEV").unwrap_or_else(|_| "false".to_string()) == "true" {
                     cfg.service(web::scope("/insecure")
                         .service(upload::anon_all_output)
                     );
