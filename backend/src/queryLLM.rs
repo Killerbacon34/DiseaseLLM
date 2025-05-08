@@ -97,7 +97,7 @@ pub async fn queryDeepSeekR1(
 
 
     let payload = json!({
-        "model": "deepseek/deepseek-r1:free",
+        "model": "deepseek/deepseek-r1-zero:free",
         "messages": [
             {
                 "role": "user",
@@ -572,7 +572,7 @@ pub async fn queryConsensus(
         }
         println!("{}", data);
         let payload = json!({
-                    "model": "deepseek/deepseek-r1:free",
+                    "model": "deepseek/deepseek-r1-zero:free",
                     "messages": [
                         {
                             "role": "user",
