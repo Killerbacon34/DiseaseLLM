@@ -577,7 +577,7 @@ pub async fn queryConsensus(
                         {
                             "role": "user",
                             "content": "Based on the patient's medical information, 
-                            there are three large language modes that each predicted 
+                            there are three large language models that each predicted 
                             a diagnosis for the patient. This query was used to get
                             a diagnosis from the models: Based on the following patient
                             information, provide: 1. A preliminary diagnosis or diagnoses 
@@ -588,8 +588,7 @@ pub async fn queryConsensus(
                             (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
                             Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
-                            Do NOT box the output. Do NOT include any other formatting or text. There cannot be \\boxed{} anywhere. It must be 
-                            PLAIN TEXT. NO BOXES. 
+                            Respond with no Markdown, no asterisks, no backticks, and no special formatting—just plain text. 
                             Give me the response just like the example I gave you. 
                             Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
