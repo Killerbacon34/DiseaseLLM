@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-regex = "1"
 openssl-sys = { version = "0.9.106", features = ["vendored"] }
 actix-web = "4.0"  # For web server functionality
 actix-multipart = "0.7.2"  # For handling multipart form data
