@@ -588,7 +588,9 @@ pub async fn queryConsensus(
                             (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
                             Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
-                            Respond with no Markdown, no asterisks, no backticks, and no special formatting—just plain text. 
+                            First, generate the response with Markdown formatting. Then, in the next step,
+                             remove all Markdown characters and symbols. Deliver only the pure text 
+                             with no formatting in the final output
                             Give me the response just like the example I gave you. 
                             Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
