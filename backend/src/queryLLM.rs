@@ -641,8 +641,9 @@ pub async fn queryConsensus(
                     .and_then(|message| message.get("content"))
                     .and_then(|content| content.as_str())
                 {
-                    let re = Regex::new(r"\\boxed\{(.*?)\}").unwrap();
-                    let clean = re.replace_all(content, "$1").to_string();
+                    let re = Regex::new(r"\\boxed\{([\s\S]*?)\}").unwrap();
+                    let mut clean = re.replace_all(content, "$1").to_string();
+                    clean = clean.trim().to_string();
                     println!("Content: {}", clean);
                     if !content.is_empty() {
                     let mut con = redis_pool
