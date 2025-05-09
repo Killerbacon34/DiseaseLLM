@@ -641,11 +641,12 @@ pub async fn queryConsensus(
                     .and_then(|message| message.get("content"))
                     .and_then(|content| content.as_str())
                 {
-                    println!("Content: {}", content);
+                    
                     if (content.contains("boxed")) {
                         let re = Regex::new(r"\\boxed\{([^{}]*)\}").unwrap();
                         re.replace_all(content, "$1").to_string()
                     }
+                    println!("Content: {}", content);
                     if !content.is_empty() {
                     let mut con = redis_pool
             .get()
