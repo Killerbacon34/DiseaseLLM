@@ -6,6 +6,7 @@ use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 use tokio::time::sleep;
+use regex::Regex;
 
 pub async fn queryDeepSeekR1(
     id: String,
@@ -591,7 +592,6 @@ pub async fn queryConsensus(
                             First, generate the response with Markdown formatting. Then, in the next step,
                              remove all Markdown characters and symbols. Deliver only the pure text 
                              with no formatting in the final output
-                            Give me the response just like the example I gave you. 
                             Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
                             Just summarize them together. 
@@ -642,6 +642,10 @@ pub async fn queryConsensus(
                     .and_then(|content| content.as_str())
                 {
                     println!("Content: {}", content);
+                    if (content.contains("boxed")) {
+                        let re = Regex::new(r"\\boxed\{([^{}]*)\}").unwrap();
+                        re.replace_all(content, "$1").to_string()
+                    }
                     if !content.is_empty() {
                     let mut con = redis_pool
             .get()
