@@ -641,15 +641,15 @@ pub async fn queryConsensus(
                     .and_then(|message| message.get("content"))
                     .and_then(|content| content.as_str())
                 {
-                    let re = Regex::new(r"\\boxed\{([^{}]*)\}").unwrap();
-                    re.replace_all(content, "$1").to_string();
-                    println!("Content: {}", content);
+                    let re = Regex::new(r"\\boxed\{(.*?)\}").unwrap();
+                    let clean = re.replace_all(content, "$1").to_string();
+                    println!("Content: {}", clean);
                     if !content.is_empty() {
                     let mut con = redis_pool
             .get()
             .map_err(ErrorInternalServerError)
             .expect("Failed to get redis connection");
-            con.set(format!("consensus_{}", id), content).map_err(ErrorInternalServerError)?;
+            con.set(format!("consensus_{}", id), clean).map_err(ErrorInternalServerError)?;
             flag = false;
         }
         }
