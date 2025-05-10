@@ -645,14 +645,15 @@ pub async fn queryConsensus(
                     let mut clean = re.replace_all(content, "$1").to_string();
                     clean = clean.trim().to_string();
                     println!("Content: {}", clean);
-                    if !content.is_empty() {
+                    //clean contains more than 1 #
+                    if !clean.is_empty() && clean.matches('#').count() > 2 {
                     let mut con = redis_pool
-            .get()
-            .map_err(ErrorInternalServerError)
-            .expect("Failed to get redis connection");
-            con.set(format!("consensus_{}", id), clean).map_err(ErrorInternalServerError)?;
-            flag = false;
-        }
+                    .get()
+                    .map_err(ErrorInternalServerError)
+                    .expect("Failed to get redis connection");
+                    con.set(format!("consensus_{}", id), clean).map_err(ErrorInternalServerError)?;
+                    flag = false;
+             }
         }
     }
     Ok(())
