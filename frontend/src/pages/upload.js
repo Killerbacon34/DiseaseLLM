@@ -129,9 +129,9 @@ export default function Upload() {
         if (data.race) setSelectedRace(data.race);
         if (data.raceOther) setRaceOther(data.raceOther);
         if (data.symptoms) setSelectedSymptoms(data.symptoms.map(s => ({ value: s, label: s })));
-        if (data.bloodpressure) setBloodPressure(data.bloodpressure);
-        if (data.heartrate) setHeartRate(data.heartrate);
-        if (data.temperature) setTemperature(data.temperature);
+        if (data.bloodpressure) setBloodPressure(Number(data.bloodpressure));
+        if (data.heartrate) setHeartRate(Number(data.heartrate));
+        if (data.temperature) setTemperature(Number(data.temperature));
         if (data.medications) setSelectedMedications(data.medications.map(m => ({ value: m, label: m })));
         if (data.allergies) setSelectedAllergies(data.allergies.map(a => ({ value: a, label: a })));
         if (data.alcohol) setAlcoholUse(data.alcohol);
@@ -220,9 +220,9 @@ export default function Upload() {
         gender: selectedGender === 'Other' ? genderOther : selectedGender,
         race: selectedRace === 'Other' ? raceOther : selectedRace,
         symptoms: selectedSymptoms.map(s => s.value),
-        bloodpressure: bloodPressure || 0,
-        heartrate: heartRate || 0,
-        temperature: temperature || 0,
+        bloodpressure: bloodPressure ? parseInt(bloodPressure) : 0,
+        heartrate: heartRate ? parseInt(heartRate) : 0,
+        temperature: temperature ? parseFloat(temperature) : 0,
         medications: selectedMedications.map(m => m.value),
         allergies: selectedAllergies.map(a => a.value),
         alcohol: alcoholUse || "0",
