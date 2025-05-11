@@ -71,8 +71,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .wrap(
                 IdentityMiddleware::builder()
-                    .visit_deadline(Some(Duration::from_secs(60 * 15))) // 15 min
-                    .login_deadline(Some(Duration::from_secs(60 * 30))) // 30 min
+                    .visit_deadline(Some(Duration::from_secs(60 * 30))) // 30 min
+                    .login_deadline(Some(Duration::from_secs(60 * 60))) // 60 min
                     .build(),
             )
             .wrap(
