@@ -646,7 +646,7 @@ pub async fn queryConsensus(
                     clean = clean.trim().to_string();
                     println!("Content: {}", clean);
                     //clean contains more than 1 #
-                    if !clean.is_empty() && clean.matches('#').count() > 2 {
+                    if !clean.is_empty() && clean.matches('#').count() == 2 {
                     let mut con = redis_pool
                     .get()
                     .map_err(ErrorInternalServerError)
