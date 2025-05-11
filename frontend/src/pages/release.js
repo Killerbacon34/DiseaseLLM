@@ -11,10 +11,10 @@ export default function Release() {
     const handleClick = async (e) => {
         e.preventDefault();
         try {
-            // let apiUrl = 'http://localhost:4545/anon/release'; // Default API
+            //let apiUrl = 'http://localhost:4545/anon/release'; // Default API
             let apiUrl = 'https://backend-service-646481361829.us-central1.run.app/anon/release'; // Default API
             if (previousPage === '/signup') {
-                // apiUrl = 'http://localhost:4545/auth/release'; // API for signup page
+                //apiUrl = 'http://localhost:4545/auth/release'; // API for signup page
                 apiUrl = 'https://backend-service-646481361829.us-central1.run.app/auth/release'; // API for signup page
             }
 
@@ -80,6 +80,13 @@ return (
           <li>
             <p>
             I understand that my substance abuse disorder records are protected under the federal regulations governing the Confidentiality of Substance Use Disorder Patient Records and cannot be redisclosed without my written authorization.
+            </p>
+          </li>
+          <li className="list-unstyled text-center">
+            <p className="fs-5">
+              <strong className="text-danger">
+              All medical information fields are optional to fill out, with the exception of the symptoms you are experiencing. The more information you provide, the more accurate the diagnosis will be.
+              </strong>
             </p>
           </li>
         </ul>

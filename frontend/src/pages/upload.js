@@ -5,6 +5,26 @@ import Select from 'react-select';
 import { useMutation, queryClient } from 'react-query';
 import CreatableSelect from 'react-select/creatable';
 
+// Helper function to save form state to localStorage
+const saveFormState = (state) => {
+  try {
+    localStorage.setItem('medicalFormState', JSON.stringify(state));
+  } catch (error) {
+    console.error('Error saving form state:', error);
+  }
+};
+
+// Helper function to load form state from localStorage
+const loadFormState = () => {
+  try {
+    const savedState = localStorage.getItem('medicalFormState');
+    return savedState ? JSON.parse(savedState) : null;
+  } catch (error) {
+    console.error('Error loading form state:', error);
+    return null;
+  }
+};
+
 export default function Upload() {
   const router = useRouter();
   const uploadButtonRef = useRef(null);
@@ -20,11 +40,83 @@ export default function Upload() {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [age, setAge] = useState('');
-  const [activeSection, setActiveSection] = useState('personal');
+  const [activeSection, setActiveSection] = useState('symptoms');
+  const [bloodPressure, setBloodPressure] = useState('');
+  const [heartRate, setHeartRate] = useState('');
+  const [temperature, setTemperature] = useState('');
+  const [alcoholUse, setAlcoholUse] = useState('');
+  const [smoking, setSmoking] = useState('');
+  const [drugUse, setDrugUse] = useState('');
+
+  // Load saved form state on component mount
+  useEffect(() => {
+    const savedState = loadFormState();
+    if (savedState) {
+      setSelectedSymptoms(savedState.selectedSymptoms || []);
+      setSelectedMedications(savedState.selectedMedications || []);
+      setSelectedAllergies(savedState.selectedAllergies || []);
+      setGenderOther(savedState.genderOther || '');
+      setRaceOther(savedState.raceOther || '');
+      setSelectedGender(savedState.selectedGender || '');
+      setSelectedRace(savedState.selectedRace || '');
+      setHeight(savedState.height || '');
+      setWeight(savedState.weight || '');
+      setAge(savedState.age || '');
+      setBloodPressure(savedState.bloodPressure || '');
+      setHeartRate(savedState.heartRate || '');
+      setTemperature(savedState.temperature || '');
+      setAlcoholUse(savedState.alcoholUse || '');
+      setSmoking(savedState.smoking || '');
+      setDrugUse(savedState.drugUse || '');
+      setActiveSection(savedState.activeSection || 'symptoms');
+    }
+    setIsClient(true);
+  }, []);
+
+  // Save form state whenever it changes
+  useEffect(() => {
+    const formState = {
+      selectedSymptoms,
+      selectedMedications,
+      selectedAllergies,
+      genderOther,
+      raceOther,
+      selectedGender,
+      selectedRace,
+      height,
+      weight,
+      age,
+      bloodPressure,
+      heartRate,
+      temperature,
+      alcoholUse,
+      smoking,
+      drugUse,
+      activeSection
+    };
+    saveFormState(formState);
+  }, [
+    selectedSymptoms,
+    selectedMedications,
+    selectedAllergies,
+    genderOther,
+    raceOther,
+    selectedGender,
+    selectedRace,
+    height,
+    weight,
+    age,
+    bloodPressure,
+    heartRate,
+    temperature,
+    alcoholUse,
+    smoking,
+    drugUse,
+    activeSection
+  ]);
 
   // File upload mutation
   const mutation = useMutation(
-    // (formData) => axios.post('http://localhost:4545/api/uploadFile', formData),
     (formData) => axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadFile', formData),
     {
       onSuccess: (response) => {
@@ -37,14 +129,14 @@ export default function Upload() {
         if (data.race) setSelectedRace(data.race);
         if (data.raceOther) setRaceOther(data.raceOther);
         if (data.symptoms) setSelectedSymptoms(data.symptoms.map(s => ({ value: s, label: s })));
-        if (data.bloodpressure) document.getElementById('bloodpressure').value = data.bloodpressure;
-        if (data.heartrate) document.getElementById('heartrate').value = data.heartrate;
-        if (data.temperature) document.getElementById('temperature').value = data.temperature;
+        if (data.bloodpressure) setBloodPressure(data.bloodpressure);
+        if (data.heartrate) setHeartRate(data.heartrate);
+        if (data.temperature) setTemperature(data.temperature);
         if (data.medications) setSelectedMedications(data.medications.map(m => ({ value: m, label: m })));
         if (data.allergies) setSelectedAllergies(data.allergies.map(a => ({ value: a, label: a })));
-        if (data.alcohol) document.querySelector(`input[name="alcoholuse"][value="${data.alcohol}"]`).checked = true;
-        if (data.smoking) document.querySelector(`input[name="smoking"][value="${data.smoking}"]`).checked = true;
-        if (data.druguse) document.querySelector(`input[name="druguse"][value="${data.druguse}"]`).checked = true;
+        if (data.alcohol) setAlcoholUse(data.alcohol);
+        if (data.smoking) setSmoking(data.smoking);
+        if (data.druguse) setDrugUse(data.druguse);
         alert('Form autofilled successfully!');
       },
       onError: (error) => {
@@ -80,10 +172,6 @@ export default function Upload() {
       }
     };
   }, [mutation]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Options for dropdowns
   const symptomOptions = [
@@ -125,7 +213,6 @@ export default function Upload() {
     e.preventDefault();
     
     try {
-      
       const formData = {
         height: e.target.height.value ? parseInt(e.target.height.value) : 0,
         weight: e.target.weight.value ? parseInt(e.target.weight.value) : 0,
@@ -133,23 +220,28 @@ export default function Upload() {
         gender: selectedGender === 'Other' ? genderOther : selectedGender,
         race: selectedRace === 'Other' ? raceOther : selectedRace,
         symptoms: selectedSymptoms.map(s => s.value),
-        bloodpressure: e.target.bloodpressure.value ? parseInt(e.target.bloodpressure.value) : 0,
-        heartrate: e.target.heartrate.value ? parseInt(e.target.heartrate.value) : 0,
-        temperature: e.target.temperature.value ? parseFloat(e.target.temperature.value) : 0,
+        bloodpressure: bloodPressure || 0,
+        heartrate: heartRate || 0,
+        temperature: temperature || 0,
         medications: selectedMedications.map(m => m.value),
         allergies: selectedAllergies.map(a => a.value),
-        alcohol: e.target.alcoholuse.value || "0",
-        smoking: e.target.smoking.value || "0",
-        druguse: e.target.druguse.value || "0",
+        alcohol: alcoholUse || "0",
+        smoking: smoking || "0",
+        druguse: drugUse || "0",
       };
-      // const response = await axios.post('http://localhost:4545/api/uploadForm', formData, {
+      
       const response = await axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadForm', formData, {
+      //const response = await axios.post('http://localhost:4545/api/uploadForm', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
         timeout: 5000,
         withCredentials: true,
       });
+      
+      // Clear form after successful submission if desired
+      // localStorage.removeItem('medicalFormState');
+      
       alert('Upload successful!');
       router.push('/loading');
     } catch (err) {
@@ -164,6 +256,18 @@ export default function Upload() {
 
   const handleRaceChange = (e) => {
     setSelectedRace(e.target.value);
+  };
+
+  const handleAlcoholUseChange = (e) => {
+    setAlcoholUse(e.target.value);
+  };
+
+  const handleSmokingChange = (e) => {
+    setSmoking(e.target.value);
+  };
+
+  const handleDrugUseChange = (e) => {
+    setDrugUse(e.target.value);
   };
 
   if (!isClient) {
@@ -209,23 +313,22 @@ export default function Upload() {
             <div className="card-header bg-primary text-white">
               <h1 className="h4 mb-0 text-center">Patient Medical Information Form</h1>
             </div>
-            
             <div className="card-body">
               <ul className="nav nav-tabs mb-4">
-                <li className="nav-item">
-                  <button 
-                    className={`nav-link ${activeSection === 'personal' ? 'active' : ''}`}
-                    onClick={() => setActiveSection('personal')}
-                  >
-                    Personal Info
-                  </button>
-                </li>
                 <li className="nav-item">
                   <button 
                     className={`nav-link ${activeSection === 'symptoms' ? 'active' : ''}`}
                     onClick={() => setActiveSection('symptoms')}
                   >
                     Symptoms
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button 
+                    className={`nav-link ${activeSection === 'personal' ? 'active' : ''}`}
+                    onClick={() => setActiveSection('personal')}
+                  >
+                    Personal Info
                   </button>
                 </li>
                 <li className="nav-item">
@@ -435,7 +538,6 @@ export default function Upload() {
                   </div>
                 </div>
 
-  
                 <div className={`section ${activeSection === 'biometrics' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Biometric Information</h3>
@@ -447,6 +549,8 @@ export default function Upload() {
                           id="bloodpressure" 
                           name="bloodpressure" 
                           className="form-control" 
+                          value={bloodPressure}
+                          onChange={(e) => setBloodPressure(e.target.value)}
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -456,6 +560,8 @@ export default function Upload() {
                           id="heartrate" 
                           name="heartrate" 
                           className="form-control" 
+                          value={heartRate}
+                          onChange={(e) => setHeartRate(e.target.value)}
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -466,6 +572,8 @@ export default function Upload() {
                           name="temperature" 
                           className="form-control" 
                           step="0.1" 
+                          value={temperature}
+                          onChange={(e) => setTemperature(e.target.value)}
                         />
                       </div>
                     </div>
@@ -510,23 +618,63 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Alcohol Use:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholNever" value="Never" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="alcoholuse" 
+                            id="alcoholNever" 
+                            value="Never" 
+                            checked={alcoholUse === 'Never'}
+                            onChange={handleAlcoholUseChange}
+                          />
                           <label className="form-check-label" htmlFor="alcoholNever">Never</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholRarely" value="Rarely" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="alcoholuse" 
+                            id="alcoholRarely" 
+                            value="Rarely" 
+                            checked={alcoholUse === 'Rarely'}
+                            onChange={handleAlcoholUseChange}
+                          />
                           <label className="form-check-label" htmlFor="alcoholRarely">Rarely</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholMonthly" value="Monthly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="alcoholuse" 
+                            id="alcoholMonthly" 
+                            value="Monthly" 
+                            checked={alcoholUse === 'Monthly'}
+                            onChange={handleAlcoholUseChange}
+                          />
                           <label className="form-check-label" htmlFor="alcoholMonthly">Monthly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholWeekly" value="Weekly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="alcoholuse" 
+                            id="alcoholWeekly" 
+                            value="Weekly" 
+                            checked={alcoholUse === 'Weekly'}
+                            onChange={handleAlcoholUseChange}
+                          />
                           <label className="form-check-label" htmlFor="alcoholWeekly">Weekly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholDaily" value="Daily" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="alcoholuse" 
+                            id="alcoholDaily" 
+                            value="Daily" 
+                            checked={alcoholUse === 'Daily'}
+                            onChange={handleAlcoholUseChange}
+                          />
                           <label className="form-check-label" htmlFor="alcoholDaily">Daily</label>
                         </div>
                       </div>
@@ -534,23 +682,63 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Smoking:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingNever" value="Never" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="smoking" 
+                            id="smokingNever" 
+                            value="Never" 
+                            checked={smoking === 'Never'}
+                            onChange={handleSmokingChange}
+                          />
                           <label className="form-check-label" htmlFor="smokingNever">Never</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingRarely" value="Rarely" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="smoking" 
+                            id="smokingRarely" 
+                            value="Rarely" 
+                            checked={smoking === 'Rarely'}
+                            onChange={handleSmokingChange}
+                          />
                           <label className="form-check-label" htmlFor="smokingRarely">Rarely</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingMonthly" value="Monthly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="smoking" 
+                            id="smokingMonthly" 
+                            value="Monthly" 
+                            checked={smoking === 'Monthly'}
+                            onChange={handleSmokingChange}
+                          />
                           <label className="form-check-label" htmlFor="smokingMonthly">Monthly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingWeekly" value="Weekly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="smoking" 
+                            id="smokingWeekly" 
+                            value="Weekly" 
+                            checked={smoking === 'Weekly'}
+                            onChange={handleSmokingChange}
+                          />
                           <label className="form-check-label" htmlFor="smokingWeekly">Weekly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingDaily" value="Daily" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="smoking" 
+                            id="smokingDaily" 
+                            value="Daily" 
+                            checked={smoking === 'Daily'}
+                            onChange={handleSmokingChange}
+                          />
                           <label className="form-check-label" htmlFor="smokingDaily">Daily</label>
                         </div>
                       </div>
@@ -558,23 +746,63 @@ export default function Upload() {
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Drug Use:</label>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseNever" value="Never" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="druguse" 
+                            id="druguseNever" 
+                            value="Never" 
+                            checked={drugUse === 'Never'}
+                            onChange={handleDrugUseChange}
+                          />
                           <label className="form-check-label" htmlFor="druguseNever">Never</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseRarely" value="Rarely" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="druguse" 
+                            id="druguseRarely" 
+                            value="Rarely" 
+                            checked={drugUse === 'Rarely'}
+                            onChange={handleDrugUseChange}
+                          />
                           <label className="form-check-label" htmlFor="druguseRarely">Rarely</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseMonthly" value="Monthly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="druguse" 
+                            id="druguseMonthly" 
+                            value="Monthly" 
+                            checked={drugUse === 'Monthly'}
+                            onChange={handleDrugUseChange}
+                          />
                           <label className="form-check-label" htmlFor="druguseMonthly">Monthly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseWeekly" value="Weekly" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="druguse" 
+                            id="druguseWeekly" 
+                            value="Weekly" 
+                            checked={drugUse === 'Weekly'}
+                            onChange={handleDrugUseChange}
+                          />
                           <label className="form-check-label" htmlFor="druguseWeekly">Weekly</label>
                         </div>
                         <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseDaily" value="Daily" />
+                          <input 
+                            className="form-check-input" 
+                            type="radio" 
+                            name="druguse" 
+                            id="druguseDaily" 
+                            value="Daily" 
+                            checked={drugUse === 'Daily'}
+                            onChange={handleDrugUseChange}
+                          />
                           <label className="form-check-label" htmlFor="druguseDaily">Daily</label>
                         </div>
                       </div>
@@ -584,20 +812,6 @@ export default function Upload() {
               </form>
 
               <div className="d-flex justify-content-between mt-4">
-                {/* <button 
-                  type="button" 
-                  className="btn btn-outline-primary"
-                  onClick={() => {
-                    if (activeSection === 'personal') return;
-                    if (activeSection === 'symptoms') setActiveSection('personal');
-                    if (activeSection === 'biometrics') setActiveSection('symptoms');
-                    if (activeSection === 'history') setActiveSection('biometrics');
-                  }}
-                  disabled={activeSection === 'personal'}
-                >
-                  Previous
-                </button> */}
-                
                 <button
                   type="submit" 
                   form="medicalForm" 
@@ -612,9 +826,7 @@ export default function Upload() {
                 >
                   Submit Form
                 </button>
-            
-                  
-                </div>
+              </div>
             </div>
           </div>
         </div>
