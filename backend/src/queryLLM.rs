@@ -6,6 +6,7 @@ use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 use tokio::time::sleep;
+use regex::Regex;
 
 pub async fn queryDeepSeekR1(
     id: String,
@@ -97,13 +98,14 @@ pub async fn queryDeepSeekR1(
 
 
     let payload = json!({
-        "model": "deepseek/deepseek-r1:free",
+        "model": "deepseek/deepseek-r1-zero:free",
         "messages": [
             {
                 "role": "user",
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                If there are any values in the health information that are equal to zero, disregard them and do not use them in your response.
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
                 Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
             }, 
             {
@@ -154,6 +156,7 @@ pub async fn queryDeepSeekR1(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[0] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else if let Err(poisoned) = arr.lock() {
                 eprintln!("Mutex is poisoned. Recovering...");
                 let mut arr_guard = poisoned.into_inner(); // Recover the data
@@ -282,9 +285,11 @@ pub async fn queryGemini(
             {
                 "parts": [
                     {
-                        "text": "You are a knowledgeable doctor. Provide a helpful, evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                        If there are any values in the health information that are equal to zero, disregard them and do not use them in your response. 
-                        Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
+                        "text": "You are a knowledgeable doctor. Provide a helpful, 
+                evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
+                Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH."
                     },
                     {
                         "text": prompt
@@ -353,6 +358,7 @@ pub async fn queryGemini(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[1] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else {
                 eprintln!("Failed to lock the mutex for arr");
             }
@@ -468,8 +474,9 @@ pub async fn queryLlama(
                 "role": "user",
                 "content": "You are a knowledgeable doctor. Provide a helpful, 
                 evidence-based diagnosis and treatment plan for my health condition based on the provided health information.
-                If there are any values in the health information that are equal to zero, disregard them and do not use them in your response.
-                Summarize your information in a few sentences."
+                If there are any values in the health information that are equal to zero, or don't make sense, DISREGARD them and do not use them in your response.
+                Only use the information that makes sense. Do not tell me that you can't give a diagnosis based on insufficient information, give me your best guess and a confidence score. 
+                Summarize your information in a few sentences. RETURN THE RESULTS IN ENGLISH AND ONLY ENGLISH." 
             },
             {
                 "role": "user",
@@ -518,6 +525,7 @@ pub async fn queryLlama(
         {
             if let Ok(mut arr_guard) = arr.lock() {
                 arr_guard[2] = content.to_string();
+                println!("{}\n--------------\n{}\n--------------\n{}\n--------------\n", arr_guard[0], arr_guard[1], arr_guard[2]);
             } else {
                 eprintln!("Failed to lock the mutex for arr");
                 
@@ -555,18 +563,22 @@ pub async fn queryConsensus(
     }
 }
     flag = true;
-    while (flag) {
-        let data = "";
+    while flag {
+        let mut data = String::new();
         if let Ok(arr_guard) = arr.lock() {
-            let data = arr_guard.join("#");     
+            data.push_str(&format!("{}#{}#{}", arr_guard[0], arr_guard[1], arr_guard[2]));
+            println!("Data: {}", data);
+        } else {
+            eprintln!("Failed to lock the mutex for arr");
         }
+        println!("{}", data);
         let payload = json!({
-                    "model": "deepseek/deepseek-r1:free",
+                    "model": "deepseek/deepseek-r1-zero:free",
                     "messages": [
                         {
                             "role": "user",
                             "content": "Based on the patient's medical information, 
-                            there are three large language modes that each predicted 
+                            there are three large language models that each predicted 
                             a diagnosis for the patient. This query was used to get
                             a diagnosis from the models: Based on the following patient
                             information, provide: 1. A preliminary diagnosis or diagnoses 
@@ -577,8 +589,9 @@ pub async fn queryConsensus(
                             (e.g., \"Influenza # Rest and hydration # Oseltamivir 75 mg twice daily for 5 days\").
                             Return your results as a single line for the most likely possible diagnosis in this format:
                             Diagnosed Disease Name # Treatment Plan # Drug Usage Plan.
-                            Do NOT box the output. Do NOT include any other formatting or text. There cannot be /boxed{} anywhere. 
-                            Give me the response just like the example I gave you. 
+                            First, generate the response with Markdown formatting. Then, in the next step,
+                             remove all Markdown characters and symbols. Deliver only the pure text 
+                             with no formatting in the final output
                             Do not repeat symptoms as a diagnosis. Use established disease names
                             (e.g., \"Influenza\", \"Acute Bronchitis\", \"COVID-19\", etc.). DO NOT RESTATE EACH LLM's OUTPUT. 
                             Just summarize them together. 
@@ -628,15 +641,19 @@ pub async fn queryConsensus(
                     .and_then(|message| message.get("content"))
                     .and_then(|content| content.as_str())
                 {
-                    println!("Content: {}", content);
-                    if !content.is_empty() {
+                    let re = Regex::new(r"\\boxed\{([\s\S]*?)\}").unwrap();
+                    let mut clean = re.replace_all(content, "$1").to_string();
+                    clean = clean.trim().to_string();
+                    println!("Content: {}", clean);
+                    //clean contains more than 1 #
+                    if !clean.is_empty() && clean.matches('#').count() == 2 {
                     let mut con = redis_pool
-            .get()
-            .map_err(ErrorInternalServerError)
-            .expect("Failed to get redis connection");
-            con.set(format!("consensus_{}", id), content).map_err(ErrorInternalServerError)?;
-            flag = false;
-        }
+                    .get()
+                    .map_err(ErrorInternalServerError)
+                    .expect("Failed to get redis connection");
+                    con.set(format!("consensus_{}", id), clean).map_err(ErrorInternalServerError)?;
+                    flag = false;
+             }
         }
     }
     Ok(())

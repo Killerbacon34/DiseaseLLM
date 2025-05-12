@@ -5,6 +5,26 @@ import Select from 'react-select';
 import { useMutation, queryClient } from 'react-query';
 import CreatableSelect from 'react-select/creatable';
 
+// Helper function to save form state to localStorage
+const saveFormState = (state) => {
+  try {
+    localStorage.setItem('medicalFormState', JSON.stringify(state));
+  } catch (error) {
+    console.error('Error saving form state:', error);
+  }
+};
+
+// Helper function to load form state from localStorage
+const loadFormState = () => {
+  try {
+    const savedState = localStorage.getItem('medicalFormState');
+    return savedState ? JSON.parse(savedState) : null;
+  } catch (error) {
+    console.error('Error loading form state:', error);
+    return null;
+  }
+};
+
 export default function Upload() {
   const router = useRouter();
   const uploadButtonRef = useRef(null);
@@ -20,11 +40,84 @@ export default function Upload() {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [age, setAge] = useState('');
-  const [activeSection, setActiveSection] = useState('personal');
+  const [activeSection, setActiveSection] = useState('symptoms');
+  const [bloodPressure, setBloodPressure] = useState('');
+  const [heartRate, setHeartRate] = useState('');
+  const [temperature, setTemperature] = useState('');
+  const [alcoholUse, setAlcoholUse] = useState('');
+  const [smoking, setSmoking] = useState('');
+  const [drugUse, setDrugUse] = useState('');
+
+  // Load saved form state on component mount
+  useEffect(() => {
+    const savedState = loadFormState();
+    if (savedState) {
+      setSelectedSymptoms(savedState.selectedSymptoms || []);
+      setSelectedMedications(savedState.selectedMedications || []);
+      setSelectedAllergies(savedState.selectedAllergies || []);
+      setGenderOther(savedState.genderOther || '');
+      setRaceOther(savedState.raceOther || '');
+      setSelectedGender(savedState.selectedGender || '');
+      setSelectedRace(savedState.selectedRace || '');
+      setHeight(savedState.height || '');
+      setWeight(savedState.weight || '');
+      setAge(savedState.age || '');
+      setBloodPressure(savedState.bloodPressure || '');
+      setHeartRate(savedState.heartRate || '');
+      setTemperature(savedState.temperature || '');
+      setAlcoholUse(savedState.alcoholUse || '');
+      setSmoking(savedState.smoking || '');
+      setDrugUse(savedState.drugUse || '');
+      setActiveSection(savedState.activeSection || 'symptoms');
+    }
+    setIsClient(true);
+  }, []);
+
+  // Save form state whenever it changes
+  useEffect(() => {
+    const formState = {
+      selectedSymptoms,
+      selectedMedications,
+      selectedAllergies,
+      genderOther,
+      raceOther,
+      selectedGender,
+      selectedRace,
+      height,
+      weight,
+      age,
+      bloodPressure,
+      heartRate,
+      temperature,
+      alcoholUse,
+      smoking,
+      drugUse,
+      activeSection
+    };
+    saveFormState(formState);
+  }, [
+    selectedSymptoms,
+    selectedMedications,
+    selectedAllergies,
+    genderOther,
+    raceOther,
+    selectedGender,
+    selectedRace,
+    height,
+    weight,
+    age,
+    bloodPressure,
+    heartRate,
+    temperature,
+    alcoholUse,
+    smoking,
+    drugUse,
+    activeSection
+  ]);
 
   // File upload mutation
   const mutation = useMutation(
-    (formData) => axios.post('http://localhost:4545/api/uploadFile', formData),
+    (formData) => axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadFile', formData),
     {
       onSuccess: (response) => {
         const data = response.data;
@@ -36,14 +129,14 @@ export default function Upload() {
         if (data.race) setSelectedRace(data.race);
         if (data.raceOther) setRaceOther(data.raceOther);
         if (data.symptoms) setSelectedSymptoms(data.symptoms.map(s => ({ value: s, label: s })));
-        if (data.bloodpressure) document.getElementById('bloodpressure').value = data.bloodpressure;
-        if (data.heartrate) document.getElementById('heartrate').value = data.heartrate;
-        if (data.temperature) document.getElementById('temperature').value = data.temperature;
+        if (data.bloodpressure) setBloodPressure(Number(data.bloodpressure));
+        if (data.heartrate) setHeartRate(Number(data.heartrate));
+        if (data.temperature) setTemperature(Number(data.temperature));
         if (data.medications) setSelectedMedications(data.medications.map(m => ({ value: m, label: m })));
         if (data.allergies) setSelectedAllergies(data.allergies.map(a => ({ value: a, label: a })));
-        if (data.alcohol) document.querySelector(`input[name="alcoholuse"][value="${data.alcohol}"]`).checked = true;
-        if (data.smoking) document.querySelector(`input[name="smoking"][value="${data.smoking}"]`).checked = true;
-        if (data.druguse) document.querySelector(`input[name="druguse"][value="${data.druguse}"]`).checked = true;
+        if (data.alcohol) setAlcoholUse(data.alcohol);
+        if (data.smoking) setSmoking(data.smoking);
+        if (data.druguse) setDrugUse(data.druguse);
         alert('Form autofilled successfully!');
       },
       onError: (error) => {
@@ -79,10 +172,6 @@ export default function Upload() {
       }
     };
   }, [mutation]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Options for dropdowns
   const symptomOptions = [
@@ -122,6 +211,7 @@ export default function Upload() {
 
   const handleManual = async (e) => {
     e.preventDefault();
+    
     try {
       const formData = {
         height: e.target.height.value ? parseInt(e.target.height.value) : 0,
@@ -130,22 +220,24 @@ export default function Upload() {
         gender: selectedGender === 'Other' ? genderOther : selectedGender,
         race: selectedRace === 'Other' ? raceOther : selectedRace,
         symptoms: selectedSymptoms.map(s => s.value),
-        bloodpressure: e.target.bloodpressure.value ? parseInt(e.target.bloodpressure.value) : 0,
-        heartrate: e.target.heartrate.value ? parseInt(e.target.heartrate.value) : 0,
-        temperature: e.target.temperature.value ? parseFloat(e.target.temperature.value) : 0,
+        bloodpressure: bloodPressure ? parseInt(bloodPressure) : 0,
+        heartrate: heartRate ? parseInt(heartRate) : 0,
+        temperature: temperature ? parseFloat(temperature) : 0,
         medications: selectedMedications.map(m => m.value),
         allergies: selectedAllergies.map(a => a.value),
-        alcohol: e.target.alcoholuse.value || "0",
-        smoking: e.target.smoking.value || "0",
-        druguse: e.target.druguse.value || "0",
+        alcohol: alcoholUse || "0",
+        smoking: smoking || "0",
+        druguse: drugUse || "0",
       };
-      const response = await axios.post('http://localhost:4545/api/uploadForm', formData, {
+      
+      const response = await axios.post('https://backend-service-646481361829.us-central1.run.app/api/uploadForm', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
         timeout: 5000,
         withCredentials: true,
       });
+      
       alert('Upload successful!');
       router.push('/loading');
     } catch (err) {
@@ -154,12 +246,56 @@ export default function Upload() {
     }
   };
 
+  // Custom change handlers for toggleable radio buttons
   const handleGenderChange = (e) => {
-    setSelectedGender(e.target.value);
+    const value = e.target.value;
+    setSelectedGender(prev => prev === value ? '' : value);
   };
 
   const handleRaceChange = (e) => {
-    setSelectedRace(e.target.value);
+    const value = e.target.value;
+    setSelectedRace(prev => prev === value ? '' : value);
+  };
+
+  const handleAlcoholUseChange = (e) => {
+    const value = e.target.value;
+    setAlcoholUse(prev => prev === value ? '' : value);
+  };
+
+  const handleSmokingChange = (e) => {
+    const value = e.target.value;
+    setSmoking(prev => prev === value ? '' : value);
+  };
+
+  const handleDrugUseChange = (e) => {
+    const value = e.target.value;
+    setDrugUse(prev => prev === value ? '' : value);
+  };
+
+  // Custom RadioButton component that supports toggling
+  const RadioButton = ({ name, id, value, checked, onChange, label }) => {
+    return (
+      <div className="form-check">
+        <input
+          className="form-check-input"
+          type="radio"
+          name={name}
+          id={id}
+          value={value}
+          checked={checked}
+          onChange={onChange}
+          onClick={(e) => {
+            if (checked) {
+              e.preventDefault();
+              onChange({ target: { value: '' } });
+            }
+          }}
+        />
+        <label className="form-check-label" htmlFor={id}>
+          {label}
+        </label>
+      </div>
+    );
   };
 
   if (!isClient) {
@@ -205,23 +341,22 @@ export default function Upload() {
             <div className="card-header bg-primary text-white">
               <h1 className="h4 mb-0 text-center">Patient Medical Information Form</h1>
             </div>
-            
             <div className="card-body">
               <ul className="nav nav-tabs mb-4">
-                <li className="nav-item">
-                  <button 
-                    className={`nav-link ${activeSection === 'personal' ? 'active' : ''}`}
-                    onClick={() => setActiveSection('personal')}
-                  >
-                    Personal Info
-                  </button>
-                </li>
                 <li className="nav-item">
                   <button 
                     className={`nav-link ${activeSection === 'symptoms' ? 'active' : ''}`}
                     onClick={() => setActiveSection('symptoms')}
                   >
                     Symptoms
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button 
+                    className={`nav-link ${activeSection === 'personal' ? 'active' : ''}`}
+                    onClick={() => setActiveSection('personal')}
+                  >
+                    Personal Info
                   </button>
                 </li>
                 <li className="nav-item">
@@ -286,42 +421,30 @@ export default function Upload() {
                     <div className="row">
                       <div className="col-md-6 mb-3">
                         <label className="form-label">Gender:</label>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="gender" 
-                            id="genderMale" 
-                            value="Male" 
-                            checked={selectedGender === 'Male'}
-                            onChange={handleGenderChange}
-                          />
-                          <label className="form-check-label" htmlFor="genderMale">Male</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="gender" 
-                            id="genderFemale" 
-                            value="Female" 
-                            checked={selectedGender === 'Female'}
-                            onChange={handleGenderChange}
-                          />
-                          <label className="form-check-label" htmlFor="genderFemale">Female</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="gender" 
-                            id="genderOther" 
-                            value="Other" 
-                            checked={selectedGender === 'Other'}
-                            onChange={handleGenderChange}
-                          />
-                          <label className="form-check-label" htmlFor="genderOther">Other</label>
-                        </div>
+                        <RadioButton
+                          name="gender"
+                          id="genderMale"
+                          value="Male"
+                          checked={selectedGender === 'Male'}
+                          onChange={handleGenderChange}
+                          label="Male"
+                        />
+                        <RadioButton
+                          name="gender"
+                          id="genderFemale"
+                          value="Female"
+                          checked={selectedGender === 'Female'}
+                          onChange={handleGenderChange}
+                          label="Female"
+                        />
+                        <RadioButton
+                          name="gender"
+                          id="genderOther"
+                          value="Other"
+                          checked={selectedGender === 'Other'}
+                          onChange={handleGenderChange}
+                          label="Other"
+                        />
                         <input 
                           type="text" 
                           id="genderOtherText" 
@@ -336,66 +459,46 @@ export default function Upload() {
                       
                       <div className="col-md-6 mb-3">
                         <label className="form-label">Race/Ethnicity:</label>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="race" 
-                            id="raceWhite" 
-                            value="White" 
-                            checked={selectedRace === 'White'}
-                            onChange={handleRaceChange}
-                          />
-                          <label className="form-check-label" htmlFor="raceWhite">White</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="race" 
-                            id="raceBlack" 
-                            value="Black" 
-                            checked={selectedRace === 'Black'}
-                            onChange={handleRaceChange}
-                          />
-                          <label className="form-check-label" htmlFor="raceBlack">Black/African American</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="race" 
-                            id="raceAsian" 
-                            value="Asian" 
-                            checked={selectedRace === 'Asian'}
-                            onChange={handleRaceChange}
-                          />
-                          <label className="form-check-label" htmlFor="raceAsian">Asian</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="race" 
-                            id="raceHispanic" 
-                            value="Hispanic" 
-                            checked={selectedRace === 'Hispanic'}
-                            onChange={handleRaceChange}
-                          />
-                          <label className="form-check-label" htmlFor="raceHispanic">Hispanic/Latino</label>
-                        </div>
-                        <div className="form-check">
-                          <input 
-                            className="form-check-input" 
-                            type="radio" 
-                            name="race" 
-                            id="raceOther" 
-                            value="Other" 
-                            checked={selectedRace === 'Other'}
-                            onChange={handleRaceChange}
-                          />
-                          <label className="form-check-label" htmlFor="raceOther">Other</label>
-                        </div>
+                        <RadioButton
+                          name="race"
+                          id="raceWhite"
+                          value="White"
+                          checked={selectedRace === 'White'}
+                          onChange={handleRaceChange}
+                          label="White"
+                        />
+                        <RadioButton
+                          name="race"
+                          id="raceBlack"
+                          value="Black"
+                          checked={selectedRace === 'Black'}
+                          onChange={handleRaceChange}
+                          label="Black/African American"
+                        />
+                        <RadioButton
+                          name="race"
+                          id="raceAsian"
+                          value="Asian"
+                          checked={selectedRace === 'Asian'}
+                          onChange={handleRaceChange}
+                          label="Asian"
+                        />
+                        <RadioButton
+                          name="race"
+                          id="raceHispanic"
+                          value="Hispanic"
+                          checked={selectedRace === 'Hispanic'}
+                          onChange={handleRaceChange}
+                          label="Hispanic/Latino"
+                        />
+                        <RadioButton
+                          name="race"
+                          id="raceOther"
+                          value="Other"
+                          checked={selectedRace === 'Other'}
+                          onChange={handleRaceChange}
+                          label="Other"
+                        />
                         <input 
                           type="text" 
                           id="raceOtherText" 
@@ -431,7 +534,6 @@ export default function Upload() {
                   </div>
                 </div>
 
-  
                 <div className={`section ${activeSection === 'biometrics' ? 'd-block' : 'd-none'}`}>
                   <div className="mb-4">
                     <h3 className="mb-3 border-bottom pb-2">Biometric Information</h3>
@@ -443,6 +545,8 @@ export default function Upload() {
                           id="bloodpressure" 
                           name="bloodpressure" 
                           className="form-control" 
+                          value={bloodPressure}
+                          onChange={(e) => setBloodPressure(e.target.value)}
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -452,6 +556,8 @@ export default function Upload() {
                           id="heartrate" 
                           name="heartrate" 
                           className="form-control" 
+                          value={heartRate}
+                          onChange={(e) => setHeartRate(e.target.value)}
                         />
                       </div>
                       <div className="col-md-4 mb-3">
@@ -462,6 +568,8 @@ export default function Upload() {
                           name="temperature" 
                           className="form-control" 
                           step="0.1" 
+                          value={temperature}
+                          onChange={(e) => setTemperature(e.target.value)}
                         />
                       </div>
                     </div>
@@ -505,74 +613,134 @@ export default function Upload() {
                     <div className="row">
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Alcohol Use:</label>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholNever" value="Never" />
-                          <label className="form-check-label" htmlFor="alcoholNever">Never</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholRarely" value="Rarely" />
-                          <label className="form-check-label" htmlFor="alcoholRarely">Rarely</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholMonthly" value="Monthly" />
-                          <label className="form-check-label" htmlFor="alcoholMonthly">Monthly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholWeekly" value="Weekly" />
-                          <label className="form-check-label" htmlFor="alcoholWeekly">Weekly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="alcoholuse" id="alcoholDaily" value="Daily" />
-                          <label className="form-check-label" htmlFor="alcoholDaily">Daily</label>
-                        </div>
+                        <RadioButton
+                          name="alcoholuse"
+                          id="alcoholNever"
+                          value="Never"
+                          checked={alcoholUse === 'Never'}
+                          onChange={handleAlcoholUseChange}
+                          label="Never"
+                        />
+                        <RadioButton
+                          name="alcoholuse"
+                          id="alcoholRarely"
+                          value="Rarely"
+                          checked={alcoholUse === 'Rarely'}
+                          onChange={handleAlcoholUseChange}
+                          label="Rarely"
+                        />
+                        <RadioButton
+                          name="alcoholuse"
+                          id="alcoholMonthly"
+                          value="Monthly"
+                          checked={alcoholUse === 'Monthly'}
+                          onChange={handleAlcoholUseChange}
+                          label="Monthly"
+                        />
+                        <RadioButton
+                          name="alcoholuse"
+                          id="alcoholWeekly"
+                          value="Weekly"
+                          checked={alcoholUse === 'Weekly'}
+                          onChange={handleAlcoholUseChange}
+                          label="Weekly"
+                        />
+                        <RadioButton
+                          name="alcoholuse"
+                          id="alcoholDaily"
+                          value="Daily"
+                          checked={alcoholUse === 'Daily'}
+                          onChange={handleAlcoholUseChange}
+                          label="Daily"
+                        />
                       </div>
                       
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Smoking:</label>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingNever" value="Never" />
-                          <label className="form-check-label" htmlFor="smokingNever">Never</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingRarely" value="Rarely" />
-                          <label className="form-check-label" htmlFor="smokingRarely">Rarely</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingMonthly" value="Monthly" />
-                          <label className="form-check-label" htmlFor="smokingMonthly">Monthly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingWeekly" value="Weekly" />
-                          <label className="form-check-label" htmlFor="smokingWeekly">Weekly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="smoking" id="smokingDaily" value="Daily" />
-                          <label className="form-check-label" htmlFor="smokingDaily">Daily</label>
-                        </div>
+                        <RadioButton
+                          name="smoking"
+                          id="smokingNever"
+                          value="Never"
+                          checked={smoking === 'Never'}
+                          onChange={handleSmokingChange}
+                          label="Never"
+                        />
+                        <RadioButton
+                          name="smoking"
+                          id="smokingRarely"
+                          value="Rarely"
+                          checked={smoking === 'Rarely'}
+                          onChange={handleSmokingChange}
+                          label="Rarely"
+                        />
+                        <RadioButton
+                          name="smoking"
+                          id="smokingMonthly"
+                          value="Monthly"
+                          checked={smoking === 'Monthly'}
+                          onChange={handleSmokingChange}
+                          label="Monthly"
+                        />
+                        <RadioButton
+                          name="smoking"
+                          id="smokingWeekly"
+                          value="Weekly"
+                          checked={smoking === 'Weekly'}
+                          onChange={handleSmokingChange}
+                          label="Weekly"
+                        />
+                        <RadioButton
+                          name="smoking"
+                          id="smokingDaily"
+                          value="Daily"
+                          checked={smoking === 'Daily'}
+                          onChange={handleSmokingChange}
+                          label="Daily"
+                        />
                       </div>
                       
                       <div className="col-md-4 mb-3">
                         <label className="form-label">Drug Use:</label>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseNever" value="Never" />
-                          <label className="form-check-label" htmlFor="druguseNever">Never</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseRarely" value="Rarely" />
-                          <label className="form-check-label" htmlFor="druguseRarely">Rarely</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseMonthly" value="Monthly" />
-                          <label className="form-check-label" htmlFor="druguseMonthly">Monthly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseWeekly" value="Weekly" />
-                          <label className="form-check-label" htmlFor="druguseWeekly">Weekly</label>
-                        </div>
-                        <div className="form-check">
-                          <input className="form-check-input" type="radio" name="druguse" id="druguseDaily" value="Daily" />
-                          <label className="form-check-label" htmlFor="druguseDaily">Daily</label>
-                        </div>
+                        <RadioButton
+                          name="druguse"
+                          id="druguseNever"
+                          value="Never"
+                          checked={drugUse === 'Never'}
+                          onChange={handleDrugUseChange}
+                          label="Never"
+                        />
+                        <RadioButton
+                          name="druguse"
+                          id="druguseRarely"
+                          value="Rarely"
+                          checked={drugUse === 'Rarely'}
+                          onChange={handleDrugUseChange}
+                          label="Rarely"
+                        />
+                        <RadioButton
+                          name="druguse"
+                          id="druguseMonthly"
+                          value="Monthly"
+                          checked={drugUse === 'Monthly'}
+                          onChange={handleDrugUseChange}
+                          label="Monthly"
+                        />
+                        <RadioButton
+                          name="druguse"
+                          id="druguseWeekly"
+                          value="Weekly"
+                          checked={drugUse === 'Weekly'}
+                          onChange={handleDrugUseChange}
+                          label="Weekly"
+                        />
+                        <RadioButton
+                          name="druguse"
+                          id="druguseDaily"
+                          value="Daily"
+                          checked={drugUse === 'Daily'}
+                          onChange={handleDrugUseChange}
+                          label="Daily"
+                        />
                       </div>
                     </div>
                   </div>
@@ -580,46 +748,21 @@ export default function Upload() {
               </form>
 
               <div className="d-flex justify-content-between mt-4">
-                <button 
-                  type="button" 
-                  className="btn btn-outline-primary"
+                <button
+                  type="submit" 
+                  form="medicalForm" 
+                  className="btn btn-success"
                   onClick={() => {
-                    if (activeSection === 'personal') return;
-                    if (activeSection === 'symptoms') setActiveSection('personal');
-                    if (activeSection === 'biometrics') setActiveSection('symptoms');
-                    if (activeSection === 'history') setActiveSection('biometrics');
+                    if (selectedSymptoms.length === 0) {
+                      alert('Please enter at least one symptom before submitting.');
+                      setActiveSection('symptoms');
+                      return;
+                    }
                   }}
-                  disabled={activeSection === 'personal'}
                 >
-                  Previous
+                  Submit Form
                 </button>
-                
-                {activeSection !== 'history' ? (
-                  <button 
-                    type="button" 
-                    className="btn btn-primary"
-                    onClick={() => {
-                      if (activeSection === 'symptoms' && selectedSymptoms.length === 0) {
-                        alert('Please select at least one symptom');
-                        return;
-                      }
-                      if (activeSection === 'personal') setActiveSection('symptoms');
-                      if (activeSection === 'symptoms') setActiveSection('biometrics');
-                      if (activeSection === 'biometrics') setActiveSection('history');
-                    }}
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button 
-                    type="submit" 
-                    form="medicalForm" 
-                    className="btn btn-success"
-                  >
-                    Submit Form
-                  </button>
-                )}
-                </div>
+              </div>
             </div>
           </div>
         </div>

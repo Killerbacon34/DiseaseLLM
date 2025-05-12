@@ -5,3 +5,5 @@ frontend/src/node_modules/*
 backend/Cargo.lock
 #backend/.env
 statistics/x.sh
+statistics/d.csv
+statistics/parsed_results.csv

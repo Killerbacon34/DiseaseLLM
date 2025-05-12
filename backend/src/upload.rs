@@ -301,26 +301,17 @@ pub async fn anon_all_output(
     rand::rng().fill_bytes(&mut random_bytes);
     let user_id = URL_SAFE.encode(&random_bytes);
         let mut con = redis_pool.get().map_err(ErrorInternalServerError)?;
-
-        // Initialize Redis key to track task progress
         con.set(format!("{}_ready", user_id), 0)
             .map_err(|_| ErrorInternalServerError("Failed to set Redis key"))?;
         let data_value = serde_json::to_value((*data).clone())
             .map_err(|_| ErrorInternalServerError("Failed to serialize data"))?;
- 
-
-        // Spawn background tasks
         let redis_pool_clone = redis_pool.clone();
-        /*sqlx::query("INSERT INTO results (id) VALUES ($1)")
-            .bind(&user_id)
-            .execute(pool.get_ref())
-            .await
-            .map_err(|_| ErrorInternalServerError("Failed to insert data into database"))?;*/
-let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
+        let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
         let deepseekShare = Arc::clone(&arr);
         let geminiShare = Arc::clone(&arr);
         let llamaShare = Arc::clone(&arr);
         let consensusShare = Arc::clone(&arr);
+        let finalShare = Arc::clone(&arr);
         let tasks = vec![
                 spawn_task_with_timeout(
                     "DeepseekR1",
@@ -366,9 +357,16 @@ let arr = Arc::new(Mutex::new(vec!["".to_string(); 3]));
         let parts: Vec<&str> = res.split("#").collect();
         println!("Parts: {:?}", parts);
         con.del(format!("consensus_{}", user_id)).map_err(|_| ErrorInternalServerError("Failed to delete Redis key"))?;
-        return Ok(HttpResponse::Ok().json(serde_json::json!({
-            "Diagnosis": parts[0],
-            "Treatment Plan": parts[1],
-            "Drug Usage Plan": parts[2],
-        })));
+        let response = if let Ok(arr_guard) = finalShare.lock() {
+            Ok(HttpResponse::Ok().json(serde_json::json!({
+                "Consensus": parts[0],
+                "Gemini": arr_guard[1].clone(),
+                "Deepseek": arr_guard[0].clone(),
+                "Llama": arr_guard[2].clone(),
+            })))
+        } else {
+            Ok(HttpResponse::InternalServerError().body("Failed to lock mutex"))
+        };
+        drop(finalShare); // Explicitly drop finalShare before the block ends
+        response
 }

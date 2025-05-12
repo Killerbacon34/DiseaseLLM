@@ -107,7 +107,7 @@ const Diagnosis = () => {
   useEffect(() => {
     // Simulate data loading with a timeout
     const timer = setTimeout(() => {
-    axios.get("http://localhost:4545/anon/results", {
+    axios.get("https://backend-service-646481361829.us-central1.run.app/anon/results", {
          withCredentials: true,
          headers: {
              "Accept": "application/json",

@@ -62,24 +62,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .wrap(Logger::default())
             .wrap(
                 Cors::default()
-                    .allow_any_origin()
-                    .allow_any_method()
+                    .allowed_origin("https://diseasellm-646481361829.us-central1.run.app")
+                    .allowed_origin("http://localhost:3000")
+                    .allowed_methods(vec!["GET", "POST"])
                     .allow_any_header()
                     .supports_credentials()
                     .max_age(3600),
             )
             .wrap(
                 IdentityMiddleware::builder()
-                    .visit_deadline(Some(Duration::from_secs(60 * 15))) // 15 min
-                    .login_deadline(Some(Duration::from_secs(60 * 30))) // 30 min
+                    .visit_deadline(Some(Duration::from_secs(60 * 30))) // 30 min
+                    .login_deadline(Some(Duration::from_secs(60 * 60))) // 60 min
                     .build(),
             )
             .wrap(
                 SessionMiddleware::builder(redis_session.clone(), key.clone())
-                    .cookie_secure(false) // Set to `true` only if using HTTPS
+                    .cookie_secure(true) // Set to `true` only if using HTTPS
                     .cookie_http_only(true)
-                    .cookie_same_site(SameSite::Lax) // Use `Lax` for better compatibility
-                    .cookie_name("session_token".to_string())
+                    .cookie_same_site(SameSite::None) 
+                    .cookie_name("__session".to_string())
                     .session_lifecycle(
                         PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
                     )
@@ -104,7 +105,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .service(anonymous::check_session)
             )
             .configure(|cfg| {
-                if std::env::var("ENABLE_INSECURE").unwrap_or_else(|_| "false".to_string()) == "true" {
+                if std::env::var("DEV").unwrap_or_else(|_| "false".to_string()) == "true" {
                     cfg.service(web::scope("/insecure")
                         .service(upload::anon_all_output)
                     );
