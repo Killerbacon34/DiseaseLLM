@@ -72,7 +72,7 @@ pub async fn anon_check_results(
                 return HttpResponse::Ok().json(serde_json::json!({
                     "Diagnosis": parts[0],
                     "Treatment Plan": parts[1],
-                    "Drug Usage Plan": parts[2],
+                    "Drug Recommendation and Usage Plan": parts[2],
                 }));
             }
             else {
