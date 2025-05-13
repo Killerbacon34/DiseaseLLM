@@ -133,6 +133,12 @@ const Diagnosis = () => {
     window.location.href = "/";
   };
 
+  const goToUpload = () => {
+    // In a real app with router: router.push("/")
+    console.log("Navigate to upload");
+    window.location.href = "/upload";
+  };
+
   return (
     <div className="container">
       {/* Add the custom styles */}
@@ -159,6 +165,11 @@ const Diagnosis = () => {
       <div className="text-center mt-4 mb-5">
         <button onClick={goToHome} className="home-button btn">
           <span className="me-2">←</span> Return Home
+        </button>
+      </div>
+      <div className="text-center mt-4 mb-5">
+        <button onClick={goToUpload} className="home-button btn">
+          <span className="me-2">←</span> Try Different Inputs
         </button>
       </div>
     </div>
