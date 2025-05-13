@@ -4,9 +4,9 @@ This github contains the code used for the Disease Large Language Model capstone
 * Llama
 * Gemini
   
-This project currently only works on Microsoft Edge, Google Chrome, and Firefox.
+## This project currently only works on Microsoft Edge, Google Chrome, and Firefox, all with no ad block on.
 
-# The current production site uses https://diseasellm-646481361829.us-central1.run.app, this works straight out of the box.
+# The current production site on https://diseasellm-646481361829.us-central1.run.app, this works straight out of the box.
 
 
 The goal for the project was to provide a user-friendly and intuitive interface for the public to obtain accurate medical diagnoses without the need to create an appointment with a doctor.
