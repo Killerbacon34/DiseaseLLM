@@ -6,6 +6,8 @@ This github contains the code used for the Disease Large Language Model capstone
   
 This project currently only works on Microsoft Edge, Google Chrome, and Firefox.
 
+The current production site uses https://diseasellm-646481361829.us-central1.run.app, this works straight out of the box. 
+
 The goal for the project was to provide a user-friendly and intuitive interface for the public to obtain accurate medical diagnoses without the need to create an appointment with a doctor.
 # Dependencies:
 - Latest version of Rust is installed through rustup and in the system path (https://www.rust-lang.org/tools/install). Be sure to do this with Admin privileges.
